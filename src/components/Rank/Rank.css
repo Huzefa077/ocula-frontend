@@ -1,0 +1,12 @@
+.rank-text {
+  font-size: 1.5rem;
+  color: white;
+  margin: 0.5rem 0;
+}
+
+/* Mobile scaling */
+@media (max-width: 515px) {
+  .rank-text {
+    font-size: 1rem;
+  }
+}

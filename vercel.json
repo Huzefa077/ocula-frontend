@@ -1,0 +1,10 @@
+{
+  "buildCommand": "npm run build",
+  "outputDirectory": "build",
+  "rewrites": [
+    {
+      "source": "/((?!static/|models/|manifest.json|asset-manifest.json|favicon.ico).*)",
+      "destination": "/index.html"
+    }
+  ]
+}

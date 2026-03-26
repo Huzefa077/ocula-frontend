@@ -1,0 +1,44 @@
+.Tilt {
+  display: inline-block;
+  border-radius: 15px;
+  overflow: hidden;
+}
+
+.eye {
+  position: absolute;
+  width: 1.3rem;
+  height: 1.5rem;
+  background: rgb(241, 239, 239);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border: 2px solid black;
+}
+
+.pupil {
+  width: 0.7rem;
+  height: 0.7rem;
+  background: black;
+  border-radius: 50%;
+  transition: transform 0.05s linear;
+}
+
+/* Logo shrink on mobile */
+@media (max-width: 515px) {
+  .Tilt {
+    width: 6rem !important;
+    height: 6rem !important;
+  }
+
+  .eye {
+    width: 1.2rem;
+    height: 1.4rem;
+  }
+
+  .pupil {
+    width: 0.8rem;
+    height: 0.8rem;
+  }
+}
