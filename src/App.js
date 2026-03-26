@@ -21,9 +21,9 @@ const particlesOptions = {
     number: { value: 60 },
     color: { value: '#f6f9fa' },
     links: { enable: true, distance: 140, color: '#f9f9f9', opacity: 0.5 },
-    move: { enable: true, speed: 0.7 },
+    move: { enable: true, speed: 0.5 },
     opacity: { value: 0.5 },
-    size: { value: { min: 1, max: 5 } }
+    size: { value: { min: 1, max: 4 } }
   },
   interactivity: {
     events: {
