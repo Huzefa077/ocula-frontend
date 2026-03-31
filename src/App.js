@@ -11,6 +11,9 @@ import Rank from './components/Rank/Rank';
 import { API_URL, isApiConfigured } from './config';
 import './App.css';
 
+const HEALTH_CHECK_TIMEOUT_MS = 15000;
+const HEALTH_RETRY_DELAY_MS = 5000;
+
 const particlesOptions = {
   background: {
     color: { value: '#2d26ad' },
@@ -40,6 +43,8 @@ const initialUser = { id: '', name: '', email: '', entries: 0, joined: '' };
 class App extends Component {
   constructor() {
     super();
+    this.healthCheckAbortController = null;
+    this.healthRetryTimeout = null;
     this.state = {
       input: '',
       imageUrl: '',
@@ -64,12 +69,44 @@ class App extends Component {
     this.checkBackendHealth();
   }
 
+  componentWillUnmount() {
+    if (this.healthCheckAbortController) {
+      this.healthCheckAbortController.abort();
+    }
+
+    if (this.healthRetryTimeout) {
+      clearTimeout(this.healthRetryTimeout);
+    }
+  }
+
   // Check the backend early so users do not interact with forms when the server is down.
-  checkBackendHealth = async () => {
+  checkBackendHealth = async ({ background = false } = {}) => {
     if (!isApiConfigured) return;
 
+    if (this.healthCheckAbortController) {
+      this.healthCheckAbortController.abort();
+    }
+
+    if (this.healthRetryTimeout) {
+      clearTimeout(this.healthRetryTimeout);
+      this.healthRetryTimeout = null;
+    }
+
+    const abortController = new AbortController();
+    const timeoutId = setTimeout(() => abortController.abort(), HEALTH_CHECK_TIMEOUT_MS);
+    this.healthCheckAbortController = abortController;
+
+    if (!background) {
+      this.setState({
+        backendStatus: 'checking',
+        backendMessage: 'Checking backend server...'
+      });
+    }
+
     try {
-      const response = await fetch(`${API_URL}/`);
+      const response = await fetch(`${API_URL}/`, {
+        signal: abortController.signal
+      });
 
       if (!response.ok) {
         throw new Error(`Health check failed with status ${response.status}`);
@@ -83,8 +120,20 @@ class App extends Component {
       console.error('Backend health check failed:', error);
       this.setState({
         backendStatus: 'unavailable',
-        backendMessage: "We can't reach the backend right now. Please try again later."
+        backendMessage: error.name === 'AbortError'
+          ? `The backend did not respond within ${HEALTH_CHECK_TIMEOUT_MS / 1000} seconds. The server is temporarily unavailable.`
+          : 'We cannot reach the backend right now. The server is temporarily unavailable.'
       });
+
+      this.healthRetryTimeout = setTimeout(() => {
+        this.checkBackendHealth({ background: true });
+      }, HEALTH_RETRY_DELAY_MS);
+    } finally {
+      clearTimeout(timeoutId);
+
+      if (this.healthCheckAbortController === abortController) {
+        this.healthCheckAbortController = null;
+      }
     }
   };
 
@@ -218,6 +267,11 @@ class App extends Component {
               </h1>
               <p className="status-message">{backendMessage}</p>
               {backendStatus === 'checking' && <div className="status-loader"></div>}
+              {backendStatus === 'unavailable' && (
+                <button className="status-button" onClick={this.checkBackendHealth}>
+                  Retry connection
+                </button>
+              )}
             </section>
           </main>
         ) : route === 'home' ? (

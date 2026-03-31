@@ -96,6 +96,19 @@ button {
   animation: status-loader-spin 0.85s linear infinite;
 }
 
+.status-button {
+  margin-top: 1.2rem;
+  background: #4bdcf0;
+  color: #07131d;
+  border: none;
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.status-button:hover {
+  background: #7be7f5;
+}
+
 @keyframes status-loader-spin {
   from {
     transform: rotate(0deg);
