@@ -1,6 +1,11 @@
 {
   "buildCommand": "npm run build",
   "outputDirectory": "build",
+  "git": {
+    "deploymentEnabled": {
+      "gh-pages": false
+    }
+  },
   "rewrites": [
     {
       "source": "/((?!static/|models/|manifest.json|asset-manifest.json|favicon.ico).*)",
