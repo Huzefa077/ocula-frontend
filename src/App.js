@@ -122,7 +122,7 @@ class App extends Component {
         backendStatus: 'unavailable',
         backendMessage: error.name === 'AbortError'
           ? `The backend did not respond within ${HEALTH_CHECK_TIMEOUT_MS / 1000} seconds. The server is temporarily unavailable.`
-          : 'We cannot reach the backend right now. The server is temporarily unavailable.'
+          : 'Unable to reach backend.'
       });
 
       this.healthRetryTimeout = setTimeout(() => {
@@ -263,7 +263,7 @@ class App extends Component {
           <main className="status-screen">
             <section className="status-card">
               <h1 className="status-title">
-                {backendStatus === 'checking' ? 'Starting Ocula...' : 'Server is currently unavailable'}
+                {backendStatus === 'checking' ? 'Starting Ocula...' : 'Server unavailable'}
               </h1>
               <p className="status-message">{backendMessage}</p>
               {backendStatus === 'checking' && <div className="status-loader"></div>}
