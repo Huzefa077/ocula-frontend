@@ -1,6 +1,6 @@
 # Ocula Frontend
 
-Ocula Frontend is the client-side application for the Ocula full-stack project. It is built with React and provides the user interface for registration, sign in, face detection, and AI-based face summaries from image URLs.
+It is the client-side application for the Ocula full-stack project which is is built with React and provides the user interface for registration, sign in, face detection, and AI-based face summaries from image URLs.
 
 ## Overview
 
