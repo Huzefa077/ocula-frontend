@@ -11,7 +11,7 @@ import Rank from './components/Rank/Rank';
 import { API_URL, isApiConfigured } from './config';
 import './App.css';
 
-const HEALTH_CHECK_TIMEOUT_MS = 15000;
+const HEALTH_CHECK_TIMEOUT_MS = 10000;
 const HEALTH_RETRY_DELAY_MS = 5000;
 
 const particlesOptions = {
@@ -121,7 +121,7 @@ class App extends Component {
       this.setState({
         backendStatus: 'unavailable',
         backendMessage: error.name === 'AbortError'
-          ? `The backend did not respond within ${HEALTH_CHECK_TIMEOUT_MS / 1000} seconds. The server is temporarily unavailable.`
+          ? `Server is temporarily unavailable.`
           : 'Unable to reach backend.'
       });
 
