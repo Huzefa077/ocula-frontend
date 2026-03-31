@@ -31,40 +31,25 @@ const Logo = () => {
   }, []);
 
   return (
-    <div style={{
-      position: 'absolute',
-      top: '2rem',
-      left: '2rem',
-      zIndex: 10
-    }}>
+    <div className="logo-wrapper">
       <Tilt
         perspective={400}
         glareEnable={true}
         glareMaxOpacity={0.45}
-        style={{ width: '8rem' }}
+        className="logo-tilt"
       >
-        <div style={{
-          height: '8rem',
-          width: '8rem',
-          background: 'linear-gradient(105deg, #aaaaed 0%, #4a3c79 100%)',
-          borderRadius: '15px',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          position: 'relative',
-          boxShadow: '0px 10px 20px rgba(234, 233, 244, 0.36)'
-        }}>
+        <div className="logo-card">
           <img
             src={Brain}
             alt='brain'
-            style={{ width: '5rem', height: '5rem' }}
+            className="logo-brain"
           />
 
           {/* Eyes */}
-          <div className="eye" style={{ left: '32%', top: '28%' }}>
+          <div className="eye eye-left">
             <span className="pupil"></span>
           </div>
-          <div className="eye" style={{ right: '28%', top: '28%' }}>
+          <div className="eye eye-right">
             <span className="pupil"></span>
           </div>
         </div>

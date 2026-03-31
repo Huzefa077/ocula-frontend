@@ -1,29 +1,46 @@
 import React, { useState } from 'react';
+import { API_URL, isApiConfigured } from '../../config';
+import { isValidEmail } from '../../utils/validation';
+import '../SignInForm/AuthForm.css';
 
 const Register = ({ onRouteChange, loadUser }) => {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [statusMessage, setStatusMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);   // ← NEW
 
-  const validateEmail = (email) => {
-    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-  };
-
-  const API_URL = process.env.REACT_APP_API_URL || 'https://ocula-server.onrender.com';
-  const handleRegister = async () => {          // ← made async
+  // Handles the full register flow for the form.
+  const handleRegister = async () => {
     if (!name.trim() || !email.trim() || !password.trim()) {
       setError('* All fields are required');
       return;
     }
-    if (!validateEmail(email.trim())) {
-      setError('Enter a valid email');
+    if (name.trim().length < 2) {
+      setError('Name must be at least 2 characters');
+      return;
+    }
+    if (!isValidEmail(email.trim())) {
+      setError('Enter a valid email address');
+      return;
+    }
+    if (password.trim().length < 6) {
+      setError('Password must be at least 6 characters');
+      return;
+    }
+    if (!isApiConfigured) {
+      setError('App configuration is missing the backend API URL.');
       return;
     }
 
     setError('');
+    setStatusMessage('');
     setIsLoading(true);                         // ← start loading
+    // Render can be slow on first request, so show a gentle status message.
+    const slowServerTimer = setTimeout(() => {
+      setStatusMessage('Server is taking longer than usual. It may be waking up, please wait...');
+    }, 4000);
 
     try {
       const response = await fetch(`${API_URL}/register`, {
@@ -48,8 +65,9 @@ const Register = ({ onRouteChange, loadUser }) => {
       }
     } catch (err) {
       console.error('Register error:', err);
-      setError('Server error. Try again later.');
+      setError('Backend server is unavailable. Try again later.');
     } finally {
+      clearTimeout(slowServerTimer);
       setIsLoading(false);                      // ← stop loading
     }
   };
@@ -61,9 +79,8 @@ const Register = ({ onRouteChange, loadUser }) => {
           <fieldset id="sign_up" className="ba b--transparent ph0 mh0">
             <legend className="f1 fw6 ph0 mh0">Register</legend>
 
-            {error && <p style={{color:'red'}}>{error}</p>}
-
-            {/* Name, Email, Password fields stay the same */}
+            {error && <p className="form-message form-message-error">{error}</p>}
+            {!error && statusMessage && <p className="form-message form-message-status">{statusMessage}</p>}
 
             <div className="mt3">
               <label className="db fw6 lh-copy f6">Name</label>

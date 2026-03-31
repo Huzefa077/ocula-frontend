@@ -1,15 +1,21 @@
 import React from 'react';
 import './ImageLinkForm.css';
+import { isValidImageUrl } from '../../utils/validation';
 
 const ImageLinkForm = ({ 
   onInputChange, 
   onButtonSubmit, 
   name, 
   inputValue, 
-  isDetecting   // ← New prop
+  isDetecting
 }) => {
+  // Basic client-side checks keep bad URLs from being submitted.
+  const trimmedValue = inputValue.trim();
+  const hasInput = Boolean(trimmedValue);
+  const canSubmit = hasInput && isValidImageUrl(trimmedValue);
+
   return (
-    <div style={{ transform: 'scale(0.9)', marginTop: '1rem' }}>
+    <div className="image-link-form-wrapper">
       <div className="glow-text yellow">
         <p className="f3 mt4">
           Hello {name}!<br />
@@ -17,7 +23,7 @@ const ImageLinkForm = ({
         </p>
       </div>
 
-      <div className="center">
+      <div className="image-link-form-content">
         <div className="form center pa4 br3 shadow-3">
           <input
             className="f4 pa3 w-70 center"
@@ -25,16 +31,21 @@ const ImageLinkForm = ({
             value={inputValue}
             onChange={onInputChange}
             placeholder="Enter image URL"
-            disabled={isDetecting}                    // Disable input while detecting
+            disabled={isDetecting}
           />
           <button
             className="w-25 grow f4 link dib white bg-light-purple"
             onClick={onButtonSubmit}
-            disabled={isDetecting || !inputValue.trim()}   // Disable button when detecting or empty
+            disabled={isDetecting || !canSubmit}
           >
             {isDetecting ? 'Detecting...' : 'Detect'}
           </button>
         </div>
+        {hasInput && !canSubmit && (
+          <p className="image-link-form-error">
+            Enter a valid image URL starting with http:// or https://
+          </p>
+        )}
       </div>
     </div>
   );

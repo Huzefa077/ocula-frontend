@@ -1,0 +1,11 @@
+.form-message {
+  margin: 0.75rem 0;
+}
+
+.form-message-error {
+  color: red;
+}
+
+.form-message-status {
+  color: #f7d774;
+}

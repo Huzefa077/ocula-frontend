@@ -1,19 +1,36 @@
 import React, { useState } from 'react';
+import { API_URL, isApiConfigured } from '../../config';
+import { isValidEmail } from '../../utils/validation';
+import './AuthForm.css';
 
 const SignInForm = ({ onRouteChange, loadUser }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [statusMessage, setStatusMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);   // ← Loading state
 
+  // Handles the full sign-in flow for the form.
   const handleSignIn = async () => {
     if (!email.trim() || !password.trim()) {
       setError('* All fields are required');
       return;
     }
-    const API_URL = process.env.REACT_APP_API_URL || 'https://ocula-server.onrender.com';
+    if (!isValidEmail(email.trim())) {
+      setError('Enter a valid email address');
+      return;
+    }
+    if (!isApiConfigured) {
+      setError('App configuration is missing the backend API URL.');
+      return;
+    }
     setError('');
+    setStatusMessage('');
     setIsLoading(true);
+    // Render can be slow on first request, so show a gentle status message.
+    const slowServerTimer = setTimeout(() => {
+      setStatusMessage('Server is taking longer than usual. It may be waking up, please wait...');
+    }, 4000);
 
     try {
       const response = await fetch(`${API_URL}/signin`, {
@@ -37,8 +54,9 @@ const SignInForm = ({ onRouteChange, loadUser }) => {
       }
     } catch (err) {
       console.error('Sign in error:', err);
-      setError('Server error. Try again later.');
+      setError('Backend server is unavailable. Try again later.');
     } finally {
+      clearTimeout(slowServerTimer);
       setIsLoading(false);
     }
   };
@@ -50,7 +68,8 @@ const SignInForm = ({ onRouteChange, loadUser }) => {
           <fieldset id="sign_in" className="ba b--transparent ph0 mh0">
             <legend className="f1 fw6 ph0 mh0">Sign In</legend>
 
-            {error && <p style={{ color: 'red' }}>{error}</p>}
+            {error && <p className="form-message form-message-error">{error}</p>}
+            {!error && statusMessage && <p className="form-message form-message-status">{statusMessage}</p>}
 
             <div className="mt3">
               <label className="db fw6 lh-copy f6">Email</label>

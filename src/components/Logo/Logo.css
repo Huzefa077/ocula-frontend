@@ -1,7 +1,35 @@
+.logo-wrapper {
+  position: absolute;
+  top: 2rem;
+  left: 2rem;
+  z-index: 10;
+}
+
 .Tilt {
   display: inline-block;
   border-radius: 15px;
   overflow: hidden;
+}
+
+.logo-tilt {
+  width: 8rem;
+}
+
+.logo-card {
+  height: 8rem;
+  width: 8rem;
+  background: linear-gradient(105deg, #aaaaed 0%, #4a3c79 100%);
+  border-radius: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  box-shadow: 0px 10px 20px rgba(234, 233, 244, 0.36);
+}
+
+.logo-brain {
+  width: 5rem;
+  height: 5rem;
 }
 
 .eye {
@@ -17,6 +45,16 @@
   border: 2px solid black;
 }
 
+.eye-left {
+  left: 32%;
+  top: 28%;
+}
+
+.eye-right {
+  right: 28%;
+  top: 28%;
+}
+
 .pupil {
   width: 0.7rem;
   height: 0.7rem;
@@ -27,9 +65,25 @@
 
 /* Logo shrink on mobile */
 @media (max-width: 515px) {
+  .logo-wrapper {
+    top: 1rem;
+    left: 1rem;
+  }
+
   .Tilt {
     width: 6rem !important;
     height: 6rem !important;
+  }
+
+  .logo-tilt,
+  .logo-card {
+    width: 6rem;
+    height: 6rem;
+  }
+
+  .logo-brain {
+    width: 3.8rem;
+    height: 3.8rem;
   }
 
   .eye {
