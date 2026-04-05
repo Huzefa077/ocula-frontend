@@ -1,46 +1,50 @@
 # Ocula Frontend
-
-It is the client-side application for the Ocula full-stack project, built with React. It provides the user interface for registration, sign in, face detection, and AI-based face summaries from image URLs.
+This repo contains the frontend application part for the Ocula full-stack project. Built with React and provides user interface for authentication, image-based face detection, and AI-generated face summaries.
 
 ## Live Demo
 
-The project is deployed on Vercel:
-👉 [https://ocula-frontend.vercel.app/](https://ocula-frontend.vercel.app/)
+- Vercel: [https://ocula-frontend.vercel.app/](https://ocula-frontend.vercel.app/)
 
 ## Overview
 
 The frontend allows users to:
 
-* register and sign in
-* submit an image URL
-* detect one or more faces in the image
-* view AI-generated face summaries such as estimated age, gender, and expression
+- register and sign in
+- submit an image URL
+- detect one or more faces in the image
+- view AI-generated face summaries such as estimated age, gender, and expression
 
-The application communicates with the Ocula backend API for authentication and user data updates.
+The application communicates with the Ocula backend API for authentication and user entry updates.
 
 ## Tech Stack
 
-* React
-* face-api.js
-* CSS
-* Tachyons
-* tsParticles
+- JavaScript (ES6+)
+- React 19
+- CSS
+- Tachyons
+- face-api.js
+- tsParticles
+
+## Runtime Versions
+
+- Node.js: 20.x
+- npm: 10.x
 
 ## Project Structure
 
 ```text
 ocula-frontend/
-├── public/
-│   └── models/
-├── src/
-│   ├── components/
-│   ├── utils/
-│   ├── App.js
-│   ├── App.css
-│   └── config.js
-├── .env.example
-├── package.json
-└── README.md
+|-- public/
+|   `-- models/
+|-- src/
+|   |-- components/
+|   |-- utils/
+|   |-- App.css
+|   |-- App.js
+|   `-- config.js
+|-- .env.example
+|-- package.json
+`-- README.md
 ```
 
 ## Environment Variables
@@ -51,13 +55,13 @@ Create a `.env` file in the project root:
 REACT_APP_API_URL=https://your-backend-url.onrender.com
 ```
 
+Frontend environment variables must begin with `REACT_APP_`.
+
 Example:
 
 ```env
 REACT_APP_API_URL=https://ocula-server.onrender.com
 ```
-
-Frontend environment variables must begin with `REACT_APP_`.
 
 ## Installation
 
@@ -89,29 +93,24 @@ npm run deploy
 
 ### Vercel
 
-Recommended Vercel settings:
+Recommended settings:
 
-* Framework Preset: Create React App
-* Root Directory: `ocula-frontend`
-* Build Command: `npm run build`
-* Output Directory: `build`
-
-Required environment variable:
-
-```env
-REACT_APP_API_URL=https://your-backend-url.onrender.com
-```
+- Framework Preset: Create React App
+- Root Directory: `ocula-frontend`
+- Build Command: `npm run build`
+- Output Directory: `build`
+- Add the same `REACT_APP_API_URL` environment variable in the Vercel project settings.
 
 ### GitHub Pages
 
-The project also supports GitHub Pages deployment using the `gh-pages` package.
+The project also supports static deployment to GitHub Pages using the `gh-pages` package.
 
 ## Notes
 
-* The frontend expects the backend API to be available through the configured `REACT_APP_API_URL`.
-* Face detection uses model files stored locally in `public/models`.
-* AI-generated face summaries are estimates and may not always be accurate.
+- The frontend expects the backend API to be available through `REACT_APP_API_URL`.
+- Face detection models are stored locally in `public/models`.
+- AI-generated face summaries are estimates and may not always be accurate.
 
 ## Related Project
 
-The backend for this application is available in the `ocula-server` repository.
+The backend for this application is available in the `ocula-server` project.
