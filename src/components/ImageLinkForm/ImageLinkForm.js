@@ -5,6 +5,7 @@ import { isValidImageUrl } from '../../utils/validation';
 const ImageLinkForm = ({ 
   onInputChange, 
   onButtonSubmit, 
+  onCancelDetect,
   name, 
   inputValue, 
   isDetecting
@@ -40,6 +41,15 @@ const ImageLinkForm = ({
           >
             {isDetecting ? 'Detecting...' : 'Detect'}
           </button>
+          {isDetecting && (
+            <button
+              className="image-link-form-cancel"
+              onClick={onCancelDetect}
+              type="button"
+            >
+              Cancel
+            </button>
+          )}
         </div>
         {hasInput && !canSubmit && (
           <p className="image-link-form-error">

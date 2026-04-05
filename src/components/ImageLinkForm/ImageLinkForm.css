@@ -30,6 +30,12 @@
   text-align: center;
 }
 
+.image-link-form-cancel {
+  margin-left: 0.75rem;
+  background: #822727;
+  color: #fff;
+}
+
 /* Mobile adjustments */
 @media (max-width: 515px) {
   .image-link-form-wrapper {

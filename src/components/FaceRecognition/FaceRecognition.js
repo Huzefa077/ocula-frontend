@@ -37,6 +37,7 @@ class FaceRecognition extends Component {
     super(props);
     this.imageRef = React.createRef();
     this.canvasRef = React.createRef();
+    this.activeRequestId = props.detectRequestId;
     this.state = {
       faceSummaries: [],
       faceBoxes: []
@@ -83,9 +84,14 @@ class FaceRecognition extends Component {
   }
 
   componentDidUpdate(prevProps) {
+    if (prevProps.detectRequestId !== this.props.detectRequestId) {
+      this.activeRequestId = this.props.detectRequestId;
+      this.isProcessing = false;
+      this.setState({ faceSummaries: [], faceBoxes: [] });
+    }
+
     if (prevProps.imageUrl !== this.props.imageUrl && this.props.imageUrl && this.modelsLoaded) {
       this.setState({ faceSummaries: [], faceBoxes: [] });
-      this.detectFaces();
     } else if (prevProps.imageUrl !== this.props.imageUrl && !this.props.imageUrl) {
       this.setState({ faceSummaries: [], faceBoxes: [] });
     }
@@ -111,6 +117,7 @@ class FaceRecognition extends Component {
     const canvas = this.canvasRef.current;
     if (!img || !canvas || !this.faceapi) return;
 
+    const requestId = this.props.detectRequestId;
     this.isProcessing = true;
     this.props.onDetectStart?.();
     this.props.onDetectFail?.(null);
@@ -133,6 +140,10 @@ class FaceRecognition extends Component {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
       this.faceapi.draw.drawDetections(canvas, resizedDetections);
+
+      if (requestId !== this.props.detectRequestId) {
+        return;
+      }
 
       if (detections.length === 0) {
         this.setState({ faceSummaries: [], faceBoxes: [] });
@@ -159,6 +170,9 @@ class FaceRecognition extends Component {
         this.props.onDetectSuccess?.();
       }
     } catch (error) {
+      if (requestId !== this.props.detectRequestId) {
+        return;
+      }
       console.error('Face detection error:', error);
       this.setState({ faceSummaries: [], faceBoxes: [] });
       this.props.onDetectFail?.('Could not process image. Try another URL.');
@@ -168,9 +182,9 @@ class FaceRecognition extends Component {
   };
 
   handleImageError = () => {
+    this.isProcessing = false;
     this.setState({ faceSummaries: [], faceBoxes: [] });
-    this.props.onDetectFail?.('Failed to load image. Check the URL.');
-    this.props.onDetectSuccess?.();
+    this.props.onDetectFail?.('This image host blocked access. Try another direct image URL.');
   };
 
   handleImageLoad = () => {

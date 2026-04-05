@@ -51,6 +51,7 @@ class App extends Component {
       detectMessage: '',
       detectStatusMessage: '',
       isDetecting: false,
+      detectRequestId: 0,
       backendStatus: isApiConfigured ? 'checking' : 'missing-config',
       backendMessage: isApiConfigured
         ? 'Checking backend server...'
@@ -152,12 +153,24 @@ class App extends Component {
       imageUrl: '',           // Force image to re-load
       detectMessage: '',
       detectStatusMessage: 'Loading image preview...',
-      isDetecting: true
+      isDetecting: true,
+      detectRequestId: this.state.detectRequestId + 1
     }, () => {
       setTimeout(() => {
         this.setState({ imageUrl: newImageUrl });
       }, 150);   // increased a bit for reliability
     });
+  };
+
+  // Let the user stop the current scan and fully reset the image area.
+  handleDetectCancel = () => {
+    this.setState((prevState) => ({
+      imageUrl: '',
+      detectMessage: 'Image scan was cancelled.',
+      detectStatusMessage: '',
+      isDetecting: false,
+      detectRequestId: prevState.detectRequestId + 1
+    }));
   };
 
   handleDetectStart = () => {
@@ -249,6 +262,7 @@ class App extends Component {
       detectStatusMessage,
       input,
       isDetecting,
+      detectRequestId,
       backendStatus,
       backendMessage
     } = this.state;
@@ -263,7 +277,7 @@ class App extends Component {
           <main className="status-screen">
             <section className="status-card">
               <h1 className="status-title">
-                {backendStatus === 'checking' ? 'Starting Ocula...' : 'Server unavailable'}
+                {backendStatus === 'checking' ? 'Starting Ocula' : 'Server unavailable'}
               </h1>
               <p className="status-message">{backendMessage}</p>
               {backendStatus === 'checking' && <div className="status-loader"></div>}
@@ -283,6 +297,7 @@ class App extends Component {
             <ImageLinkForm
               onInputChange={this.onInputChange}
               onButtonSubmit={this.onButtonSubmit}
+              onCancelDetect={this.handleDetectCancel}
               name={user.name}
               inputValue={input}
               isDetecting={isDetecting}
@@ -299,6 +314,7 @@ class App extends Component {
             <FaceRecognition
               imageUrl={imageUrl}
               isDetecting={isDetecting}
+              detectRequestId={detectRequestId}
               onDetectStart={this.handleDetectStart}
               onDetectSuccess={this.handleDetectSuccess}
               onDetectFail={this.handleDetectFail}
