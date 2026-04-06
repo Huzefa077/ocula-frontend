@@ -11,7 +11,7 @@ import Rank from './components/Rank/Rank';
 import { API_URL, isApiConfigured } from './config';
 import './App.css';
 
-const HEALTH_CHECK_TIMEOUT_MS = 10000;
+const HEALTH_CHECK_TIMEOUT_MS = 1700;
 const HEALTH_RETRY_DELAY_MS = 5000;
 
 const particlesOptions = {
@@ -81,7 +81,7 @@ class App extends Component {
   }
 
   // Check the backend early so users do not interact with forms when the server is down.
-  checkBackendHealth = async ({ background = false } = {}) => {
+  checkBackendHealth = async ({ silent = false } = {}) => {
     if (!isApiConfigured) return;
 
     if (this.healthCheckAbortController) {
@@ -97,7 +97,7 @@ class App extends Component {
     const timeoutId = setTimeout(() => abortController.abort(), HEALTH_CHECK_TIMEOUT_MS);
     this.healthCheckAbortController = abortController;
 
-    if (!background) {
+    if (!silent) {
       this.setState({
         backendStatus: 'checking',
         backendMessage: 'Checking backend server...'
@@ -127,7 +127,7 @@ class App extends Component {
       });
 
       this.healthRetryTimeout = setTimeout(() => {
-        this.checkBackendHealth({ background: true });
+        this.checkBackendHealth({ silent: true });
       }, HEALTH_RETRY_DELAY_MS);
     } finally {
       clearTimeout(timeoutId);
