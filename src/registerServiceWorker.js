@@ -1,3 +1,4 @@
+// This file contains the old Create React App service worker helper code.
 // In production, we register a service worker to serve assets from local cache.
 
 // This lets the app load faster on subsequent visits in production, and gives

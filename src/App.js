@@ -1,3 +1,4 @@
+// This file is the main frontend controller that manages app state, routes, backend checks, and image scanning flow.
 import React, { Component } from 'react';
 import Particles, { initParticlesEngine } from '@tsparticles/react';
 import { loadSlim } from '@tsparticles/slim';
@@ -43,19 +44,22 @@ const initialUser = { id: '', name: '', email: '', entries: 0, joined: '' };
 class App extends Component {
   constructor() {
     super();
-    this.healthCheckAbortController = null;
-    this.healthRetryTimeout = null;
+    this.activeHealthCheckController = null;
+    this.healthRetryTimerId = null;
     this.state = {
       input: '',
       imageUrl: '',
       detectMessage: '',
       detectStatusMessage: '',
       isDetecting: false,
-      detectRequestId: 0,
+      scanSessionId: 0,
+
+      // backendStatus tells the app what situation it is in, while backendMessage is the text shown to the user for that situation.
       backendStatus: isApiConfigured ? 'checking' : 'missing-config',
       backendMessage: isApiConfigured
         ? 'Checking backend server...'
         : 'App configuration is missing the backend API URL.',
+        
       route: 'signin',
       isSignedIn: false,
       init: false,
@@ -67,35 +71,36 @@ class App extends Component {
     initParticlesEngine(async (engine) => await loadSlim(engine))
       .then(() => this.setState({ init: true }));
 
-    this.checkBackendHealth();
+    this.checkBackendAvailability();
   }
 
   componentWillUnmount() {
-    if (this.healthCheckAbortController) {
-      this.healthCheckAbortController.abort();
+    if (this.activeHealthCheckController) {
+      // AbortController is the object. Calling .abort() is what actually cancels the pending request.
+      this.activeHealthCheckController.abort();
     }
 
-    if (this.healthRetryTimeout) {
-      clearTimeout(this.healthRetryTimeout);
+    if (this.healthRetryTimerId) {
+      clearTimeout(this.healthRetryTimerId);
     }
   }
 
   // Check the backend early so users do not interact with forms when the server is down.
-  checkBackendHealth = async ({ silent = false } = {}) => {
+  checkBackendAvailability = async ({ silent = false } = {}) => {
     if (!isApiConfigured) return;
 
-    if (this.healthCheckAbortController) {
-      this.healthCheckAbortController.abort();
+    if (this.activeHealthCheckController) {
+      this.activeHealthCheckController.abort();
     }
 
-    if (this.healthRetryTimeout) {
-      clearTimeout(this.healthRetryTimeout);
-      this.healthRetryTimeout = null;
+    if (this.healthRetryTimerId) {
+      clearTimeout(this.healthRetryTimerId);
+      this.healthRetryTimerId = null;
     }
 
-    const abortController = new AbortController();
-    const timeoutId = setTimeout(() => abortController.abort(), HEALTH_CHECK_TIMEOUT_MS);
-    this.healthCheckAbortController = abortController;
+    const requestAbortController = new AbortController();
+    const healthCheckTimeoutId = setTimeout(() => requestAbortController.abort(), HEALTH_CHECK_TIMEOUT_MS);
+    this.activeHealthCheckController = requestAbortController;
 
     if (!silent) {
       this.setState({
@@ -106,7 +111,7 @@ class App extends Component {
 
     try {
       const response = await fetch(`${API_URL}/`, {
-        signal: abortController.signal
+        signal: requestAbortController.signal
       });
 
       if (!response.ok) {
@@ -126,25 +131,25 @@ class App extends Component {
           : 'Unable to reach backend.'
       });
 
-      this.healthRetryTimeout = setTimeout(() => {
-        this.checkBackendHealth({ silent: true });
+      this.healthRetryTimerId = setTimeout(() => {
+        this.checkBackendAvailability({ silent: true });
       }, HEALTH_RETRY_DELAY_MS);
     } finally {
-      clearTimeout(timeoutId);
+      clearTimeout(healthCheckTimeoutId);
 
-      if (this.healthCheckAbortController === abortController) {
-        this.healthCheckAbortController = null;
+      if (this.activeHealthCheckController === requestAbortController) {
+        this.activeHealthCheckController = null;
       }
     }
   };
 
   // Save the signed-in user so other parts of the app can use it.
-  loadUser = (data) => this.setState({ user: { ...data } });
+  setSignedInUser = (userProfile) => this.setState({ user: { ...userProfile } });
 
-  onInputChange = (event) => this.setState({ input: event.target.value });
+  handleImageInputChange = (event) => this.setState({ input: event.target.value });
 
   // Clear the old result first so the same URL can be submitted again cleanly.
-  onButtonSubmit = () => {
+  handleImageSubmit = () => {
     if (!this.state.input.trim()) return;
 
     const newImageUrl = this.state.input.trim();
@@ -154,7 +159,8 @@ class App extends Component {
       detectMessage: '',
       detectStatusMessage: 'Loading image preview...',
       isDetecting: true,
-      detectRequestId: this.state.detectRequestId + 1
+      // Every new scan gets a new session id so old async results can be ignored safely.
+      scanSessionId: this.state.scanSessionId + 1
     }, () => {
       setTimeout(() => {
         this.setState({ imageUrl: newImageUrl });
@@ -169,7 +175,7 @@ class App extends Component {
       detectMessage: 'Image scan was cancelled.',
       detectStatusMessage: '',
       isDetecting: false,
-      detectRequestId: prevState.detectRequestId + 1
+      scanSessionId: prevState.scanSessionId + 1
     }));
   };
 
@@ -237,7 +243,7 @@ class App extends Component {
     });
   };
 
-  onRouteChange = (route) => {
+  handleRouteChange = (route) => {
     if (route === 'signout') {
       // Reset app state on sign out so the next session starts clean.
       this.setState({
@@ -262,7 +268,7 @@ class App extends Component {
       detectStatusMessage,
       input,
       isDetecting,
-      detectRequestId,
+      scanSessionId,
       backendStatus,
       backendMessage
     } = this.state;
@@ -282,7 +288,7 @@ class App extends Component {
               <p className="status-message">{backendMessage}</p>
               {backendStatus === 'checking' && <div className="status-loader"></div>}
               {backendStatus === 'unavailable' && (
-                <button className="status-button" onClick={this.checkBackendHealth}>
+                <button className="status-button" onClick={this.checkBackendAvailability}>
                   Retry connection
                 </button>
               )}
@@ -290,13 +296,13 @@ class App extends Component {
           </main>
         ) : route === 'home' ? (
           <>
-            <Navigation isSignedIn={isSignedIn} onRouteChange={this.onRouteChange} />
+            <Navigation isSignedIn={isSignedIn} onRouteChange={this.handleRouteChange} />
           <div className="home-container">
             <Logo />
 
             <ImageLinkForm
-              onInputChange={this.onInputChange}
-              onButtonSubmit={this.onButtonSubmit}
+              onInputChange={this.handleImageInputChange}
+              onButtonSubmit={this.handleImageSubmit}
               onCancelDetect={this.handleDetectCancel}
               name={user.name}
               inputValue={input}
@@ -314,7 +320,7 @@ class App extends Component {
             <FaceRecognition
               imageUrl={imageUrl}
               isDetecting={isDetecting}
-              detectRequestId={detectRequestId}
+              scanSessionId={scanSessionId}
               onDetectStart={this.handleDetectStart}
               onDetectSuccess={this.handleDetectSuccess}
               onDetectFail={this.handleDetectFail}
@@ -335,13 +341,13 @@ class App extends Component {
           </>
         ) : route === 'signin' ? (
           <>
-            <Navigation isSignedIn={isSignedIn} onRouteChange={this.onRouteChange} />
-            <SignInForm loadUser={this.loadUser} onRouteChange={this.onRouteChange} />
+            <Navigation isSignedIn={isSignedIn} onRouteChange={this.handleRouteChange} />
+            <SignInForm loadUser={this.setSignedInUser} onRouteChange={this.handleRouteChange} />
           </>
         ) : (
           <>
-            <Navigation isSignedIn={isSignedIn} onRouteChange={this.onRouteChange} />
-            <Register loadUser={this.loadUser} onRouteChange={this.onRouteChange} />
+            <Navigation isSignedIn={isSignedIn} onRouteChange={this.handleRouteChange} />
+            <Register loadUser={this.setSignedInUser} onRouteChange={this.handleRouteChange} />
           </>
         )}
       </div>

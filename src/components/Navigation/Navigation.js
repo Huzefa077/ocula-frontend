@@ -1,3 +1,4 @@
+// This file shows the navigation links based on whether the user is signed in or signed out.
 import React from 'react';
 import './Navigation.css';
 

@@ -1,3 +1,4 @@
+// This file loads the face models, scans the image, draws face boxes, and shows the AI face summary.
 import React, { Component } from 'react';
 import './FaceRecognition.css';
 
@@ -37,7 +38,6 @@ class FaceRecognition extends Component {
     super(props);
     this.imageRef = React.createRef();
     this.canvasRef = React.createRef();
-    this.activeRequestId = props.detectRequestId;
     this.state = {
       faceSummaries: [],
       faceBoxes: []
@@ -84,8 +84,8 @@ class FaceRecognition extends Component {
   }
 
   componentDidUpdate(prevProps) {
-    if (prevProps.detectRequestId !== this.props.detectRequestId) {
-      this.activeRequestId = this.props.detectRequestId;
+    if (prevProps.scanSessionId !== this.props.scanSessionId) {
+      // Reset any old analysis when a new scan session starts or when the user cancels.
       this.isProcessing = false;
       this.setState({ faceSummaries: [], faceBoxes: [] });
     }
@@ -117,7 +117,7 @@ class FaceRecognition extends Component {
     const canvas = this.canvasRef.current;
     if (!img || !canvas || !this.faceapi) return;
 
-    const requestId = this.props.detectRequestId;
+    const currentScanSessionId = this.props.scanSessionId;
     this.isProcessing = true;
     this.props.onDetectStart?.();
     this.props.onDetectFail?.(null);
@@ -141,7 +141,8 @@ class FaceRecognition extends Component {
 
       this.faceapi.draw.drawDetections(canvas, resizedDetections);
 
-      if (requestId !== this.props.detectRequestId) {
+      // If a newer scan started while this one was running, ignore this stale result.
+      if (currentScanSessionId !== this.props.scanSessionId) {
         return;
       }
 
@@ -170,7 +171,7 @@ class FaceRecognition extends Component {
         this.props.onDetectSuccess?.();
       }
     } catch (error) {
-      if (requestId !== this.props.detectRequestId) {
+      if (currentScanSessionId !== this.props.scanSessionId) {
         return;
       }
       console.error('Face detection error:', error);

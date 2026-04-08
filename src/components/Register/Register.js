@@ -1,3 +1,4 @@
+// This file renders the registration form and handles the frontend side of creating a new account.
 import React, { useState } from 'react';
 import { API_URL, isApiConfigured } from '../../config';
 import { isValidEmail } from '../../utils/validation';

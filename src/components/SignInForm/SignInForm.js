@@ -1,3 +1,4 @@
+// This file renders the sign-in form and handles the frontend side of logging a user in.
 import React, { useState } from 'react';
 import { API_URL, isApiConfigured } from '../../config';
 import { isValidEmail } from '../../utils/validation';

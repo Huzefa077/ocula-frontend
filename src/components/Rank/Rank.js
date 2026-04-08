@@ -1,3 +1,4 @@
+// This file displays the signed-in user's current face detection entry count.
 import React from 'react';
 import './Rank.css';
 

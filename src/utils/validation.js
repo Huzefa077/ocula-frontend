@@ -1,3 +1,4 @@
+// This file stores reusable validation helpers for email addresses and image URLs.
 export const isValidEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 
 // We only accept normal web image links here.

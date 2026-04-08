@@ -1,3 +1,4 @@
+// This file contains the basic test setup for the main frontend app component.
 import React from 'react';
 import ReactDOM from 'react-dom';
 import App from './App';

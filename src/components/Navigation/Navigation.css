@@ -1,3 +1,4 @@
+/* This file styles the top navigation layout for sign in, register, and sign out links. */
 .navigation {
   display: flex;
   justify-content: flex-end;

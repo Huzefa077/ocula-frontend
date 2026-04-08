@@ -1,3 +1,4 @@
+// This file renders the animated Ocula logo and moves the pupils based on mouse position.
 import React, { useEffect } from 'react';
 import Tilt from 'react-parallax-tilt';
 import Brain from './brain.png';

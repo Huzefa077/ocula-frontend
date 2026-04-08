@@ -1,51 +1,64 @@
 # Ocula Frontend
-This repo contains the frontend application part for the Ocula full-stack project. Built with React and provides user interface for authentication, image-based face detection, and AI-generated face summaries.
 
-## Live Demo
+This repository contains the frontend application for the **Ocula** full-stack project. It is built with React and provides an interactive user interface for authentication, image-based face detection, and AI-generated face analysis.
 
-- Vercel: [https://ocula-frontend.vercel.app/](https://ocula-frontend.vercel.app/)
+🔗 **Live Demo:** [https://ocula-frontend.vercel.app/](https://ocula-frontend.vercel.app/)
+
+---
 
 ## Overview
 
-The frontend allows users to:
+The application enables users to:
 
-- register and sign in
-- submit an image URL
-- detect one or more faces in the image
-- view AI-generated face summaries such as estimated age, gender, and expression
+* Register and sign in securely
+* Submit an image URL
+* Detect one or multiple faces within an image
+* View AI-generated face summaries, including:
 
-The application communicates with the Ocula backend API for authentication and user entry updates.
+  * Estimated age
+  * Gender
+  * Facial expression
+
+The frontend communicates with a backend API to handle authentication, user data, and processing requests.
+
+---
 
 ## Tech Stack
 
-- JavaScript (ES6+)
-- React 19
-- CSS
-- Tachyons
-- face-api.js
-- tsParticles
+* **JavaScript (ES6+)**
+* **React 19**
+* **CSS**
+* **Tachyons**
+* **face-api.js**
+* **tsParticles**
+
+---
 
 ## Runtime Versions
 
-- Node.js: 20.x
-- npm: 10.x
+* **Node.js:** 20.x
+* **npm:** 10.x
+
+---
 
 ## Project Structure
 
-```text
-ocula-frontend/
-|-- public/
-|   `-- models/
-|-- src/
-|   |-- components/
-|   |-- utils/
-|   |-- App.css
-|   |-- App.js
-|   `-- config.js
-|-- .env.example
-|-- package.json
-`-- README.md
 ```
+ocula-frontend/
+├── public/
+│   └── models/
+├── src/
+│   ├── components/
+│   ├── utils/
+│   ├── App.css
+│   ├── App.js
+│   └── config.js
+├── .env.example
+├── package.json
+└── README.md
+```
+
+---
 
 ## Environment Variables
 
@@ -55,19 +68,25 @@ Create a `.env` file in the project root:
 REACT_APP_API_URL=https://your-backend-url.onrender.com
 ```
 
-Frontend environment variables must begin with `REACT_APP_`.
+> ⚠️ All frontend environment variables must begin with `REACT_APP_`.
 
-Example:
+**Example:**
 
 ```env
 REACT_APP_API_URL=https://ocula-server.onrender.com
 ```
 
+---
+
 ## Installation
+
+Install dependencies:
 
 ```bash
 npm install
 ```
+
+---
 
 ## Running the Project
 
@@ -89,28 +108,41 @@ Deploy the static build to GitHub Pages:
 npm run deploy
 ```
 
+---
+
 ## Deployment
 
-### Vercel
+### Vercel (Recommended)
 
-Recommended settings:
+Use the following configuration:
 
-- Framework Preset: Create React App
-- Root Directory: `ocula-frontend`
-- Build Command: `npm run build`
-- Output Directory: `build`
-- Add the same `REACT_APP_API_URL` environment variable in the Vercel project settings.
+* **Framework Preset:** Create React App
+* **Root Directory:** `ocula-frontend`
+* **Build Command:** `npm run build`
+* **Output Directory:** `build`
+
+Ensure the `REACT_APP_API_URL` environment variable is configured in your Vercel project settings.
+
+---
 
 ### GitHub Pages
 
-The project also supports static deployment to GitHub Pages using the `gh-pages` package.
+This project supports static deployment using the `gh-pages` package.
+
+---
 
 ## Notes
 
-- The frontend expects the backend API to be available through `REACT_APP_API_URL`.
-- Face detection models are stored locally in `public/models`.
-- AI-generated face summaries are estimates and may not always be accurate.
+* The frontend depends on a backend API defined via `REACT_APP_API_URL`.
+* Face detection models are stored locally in `public/models`.
+* AI-generated face summaries are estimates and may not always be accurate.
+
+---
 
 ## Related Project
 
-The backend for this application is available in the `ocula-server` project.
+The backend service for this application is available here:
+
+🔗 [https://github.com/Huzefa077/ocula-server](https://github.com/Huzefa077/ocula-server)
+
+The backend is responsible for handling authentication, API endpoints, user data management, and integrating AI processing services.

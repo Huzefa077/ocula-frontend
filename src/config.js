@@ -1,3 +1,4 @@
+// This file keeps the frontend API URL setup in one place so the app uses one consistent backend address.
 const rawApiUrl = process.env.REACT_APP_API_URL;
 
 // Clean the URL once here so the rest of the app can reuse it safely.

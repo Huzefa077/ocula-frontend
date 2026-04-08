@@ -1,3 +1,4 @@
+// This file renders the image URL form and controls when users can start or cancel a scan.
 import React from 'react';
 import './ImageLinkForm.css';
 import { isValidImageUrl } from '../../utils/validation';
