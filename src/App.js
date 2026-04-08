@@ -44,8 +44,11 @@ const initialUser = { id: '', name: '', email: '', entries: 0, joined: '' };
 class App extends Component {
   constructor() {
     super();
+    // Stores the current backend health-check request so we can cancel it if a newer check starts.
     this.activeHealthCheckController = null;
+    // Stores the retry timer id so we can stop old retry loops when needed.
     this.healthRetryTimerId = null;
+    
     this.state = {
       input: '',
       imageUrl: '',
@@ -85,23 +88,29 @@ class App extends Component {
     }
   }
 
-  // Check the backend early so users do not interact with forms when the server is down.
+  // This function checks whether the backend server can be reached before the user starts using the app.
+  // `silent` means "retry quietly" without showing the full checking message again on screen.
   checkBackendAvailability = async ({ silent = false } = {}) => {
+    // If the API URL is missing, there is nothing to check yet.
     if (!isApiConfigured) return;
 
+    // Cancel any older health check so only the newest request stays active.
     if (this.activeHealthCheckController) {
       this.activeHealthCheckController.abort();
     }
 
+    // Stop any old retry timer so we do not stack multiple retries.
     if (this.healthRetryTimerId) {
       clearTimeout(this.healthRetryTimerId);
       this.healthRetryTimerId = null;
     }
 
+    // Create a fresh controller and timeout for this specific health check request.
     const requestAbortController = new AbortController();
     const healthCheckTimeoutId = setTimeout(() => requestAbortController.abort(), HEALTH_CHECK_TIMEOUT_MS);
     this.activeHealthCheckController = requestAbortController;
 
+    // Only show the checking message when this is a visible check, not a silent background retry.
     if (!silent) {
       this.setState({
         backendStatus: 'checking',
@@ -110,20 +119,25 @@ class App extends Component {
     }
 
     try {
+      // Ask the backend health route for a quick response.
       const response = await fetch(`${API_URL}/`, {
         signal: requestAbortController.signal
       });
 
+      // A non-200 response means the backend replied, but not in a healthy way.
       if (!response.ok) {
         throw new Error(`Health check failed with status ${response.status}`);
       }
 
+      // If the request worked, unlock the app and clear the status message.
       this.setState({
         backendStatus: 'available',
         backendMessage: ''
       });
     } catch (error) {
       console.error('Backend health check failed:', error);
+
+      // Show a user-friendly message and mark the backend as unavailable.
       this.setState({
         backendStatus: 'unavailable',
         backendMessage: error.name === 'AbortError'
@@ -131,12 +145,15 @@ class App extends Component {
           : 'Unable to reach backend.'
       });
 
+      // Keep retrying quietly in case the backend wakes up a few seconds later.
       this.healthRetryTimerId = setTimeout(() => {
         this.checkBackendAvailability({ silent: true });
       }, HEALTH_RETRY_DELAY_MS);
     } finally {
+      // Always clear the timeout once this health check finishes.
       clearTimeout(healthCheckTimeoutId);
 
+      // Only remove the controller if it still belongs to this same request.
       if (this.activeHealthCheckController === requestAbortController) {
         this.activeHealthCheckController = null;
       }
