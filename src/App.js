@@ -12,7 +12,7 @@ import Rank from './components/Rank/Rank';
 import { API_URL, isApiConfigured } from './config';
 import './App.css';
 
-const HEALTH_CHECK_TIMEOUT_MS = 1700;
+const HEALTH_CHECK_TIMEOUT_MS = 17000;
 const HEALTH_RETRY_DELAY_MS = 5000;
 
 const particlesOptions = {
@@ -59,7 +59,7 @@ class App extends Component {
       backendMessage: isApiConfigured
         ? 'Checking backend server...'
         : 'App configuration is missing the backend API URL.',
-        
+
       route: 'signin',
       isSignedIn: false,
       init: false,
