@@ -45,6 +45,18 @@ const Register = ({ onRouteChange, loadUser }) => {
     }, 4000);
 
     try {
+      // Old fetch version for comparison:
+      // const response = await fetch(`${API_URL}/register`, {
+        //   method: 'post',
+        //   headers: { 'Content-Type': 'application/json' },
+        //   body: JSON.stringify({
+          //     name: name.trim(),
+          //     email: email.trim(),
+          //     password: password.trim()
+          //   })
+          // });
+          // const data = await response.json();
+      
       // Axios gives the parsed backend JSON directly in response.data.
       const response = await axios.post(`${API_URL}/register`, {
         name: name.trim(),

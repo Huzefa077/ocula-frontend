@@ -57,40 +57,33 @@ button {
   margin-top: 2rem;
 }
 
-.status-screen {
-  min-height: 100vh;
+.status-banner {
   display: flex;
-  align-items: center;
   justify-content: center;
-  padding: 2rem 1rem;
+  padding: 0 1rem;
 }
 
-.status-card {
-  width: min(90vw, 32rem);
-  padding: 2rem 1.5rem;
-  border-radius: 16px;
-  background: rgba(16, 20, 34, 0.6);
+.status-banner-content {
+  width: min(90vw, 42rem);
+  margin-top: 0.5rem;
+  padding: 0.85rem 1rem;
+  border-radius: 14px;
+  background: rgba(16, 20, 34, 0.72);
   border: 1px solid rgba(75, 220, 240, 0.35);
-  box-shadow: 0 0 24px rgba(0, 0, 0, 0.28);
+  box-shadow: 0 0 18px rgba(0, 0, 0, 0.22);
   color: #f7fbff;
 }
 
-.status-title {
-  margin: 0 0 0.85rem;
-  color: #4bdcf0;
-  font-size: 1.8rem;
-}
-
-.status-message {
+.status-banner-message {
   margin: 0;
-  font-size: 1rem;
-  line-height: 1.6;
+  font-size: 0.98rem;
+  line-height: 1.5;
 }
 
 .status-loader {
   width: 2.5rem;
   height: 2.5rem;
-  margin: 1.2rem auto 0;
+  margin: 0.9rem auto 0;
   border: 4px solid rgba(255, 255, 255, 0.25);
   border-top-color: #4bdcf0;
   border-radius: 50%;
@@ -98,7 +91,7 @@ button {
 }
 
 .status-button {
-  margin-top: 1.2rem;
+  margin-top: 0.9rem;
   background: #4bdcf0;
   color: #07131d;
   border: none;

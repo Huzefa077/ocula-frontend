@@ -13,8 +13,8 @@ import Rank from './components/Rank/Rank';
 import { API_URL, isApiConfigured } from './config';
 import './App.css';
 
-const HEALTH_CHECK_TIMEOUT_MS = 17000;
-const HEALTH_RETRY_DELAY_MS = 5000;
+const HEALTH_CHECK_TIMEOUT_MS = 10000;
+const HEALTH_RETRY_DELAY_MS = 4000;
 
 const particlesOptions = {
   background: {
@@ -120,6 +120,14 @@ class App extends Component {
     }
 
     try {
+      // Old fetch version for comparison:
+      // const response = await fetch(`${API_URL}/`, {
+        //   signal: requestAbortController.signal
+        // });
+        // if (!response.ok) {
+          //   throw new Error(`Health check failed with status ${response.status}`);
+          // }
+      
       // Axios throws automatically for bad HTTP responses and keeps the abort signal support.
       await axios.get(`${API_URL}/`, {
         signal: requestAbortController.signal
@@ -213,6 +221,20 @@ class App extends Component {
       return;
     }
 
+    // Old fetch version for comparison:
+    // fetch(`${API_URL}/image`, {
+    //   method: 'put',
+    //   headers: { 'Content-Type': 'application/json' },
+    //   body: JSON.stringify({ id: this.state.user.id })
+    // })
+    //   .then(async res => {
+    //     if (!res.ok) {
+    //       const text = await res.text();
+    //       throw new Error(`Server error: ${text}`);
+    //     }
+    //     return res.json();
+    //   })
+    //   .then(count => {
     axios.put(`${API_URL}/image`, { id: this.state.user.id })
       .then((response) => {
         const count = response.data;
@@ -275,30 +297,33 @@ class App extends Component {
       backendMessage
     } = this.state;
 
-    const showBackendStatusScreen = backendStatus !== 'available';
+    const showBackendStatusBanner = backendStatus !== 'available';
 
     return (
       <div className="App">
         {init && <Particles id="tsparticles" options={particlesOptions} />}
 
-        {showBackendStatusScreen ? (
-          <main className="status-screen">
-            <section className="status-card">
-              <h1 className="status-title">
-                {backendStatus === 'checking' ? 'Starting Ocula' : 'Server unavailable'}
-              </h1>
-              <p className="status-message">{backendMessage}</p>
+        <Navigation isSignedIn={isSignedIn} onRouteChange={this.handleRouteChange} />
+
+        {showBackendStatusBanner && (
+          <section className="status-banner">
+            <div className="status-banner-content">
+              <p className="status-banner-message">
+                {backendStatus === 'checking' ? 'Starting Ocula. ' : ''}
+                {backendMessage}
+              </p>
               {backendStatus === 'checking' && <div className="status-loader"></div>}
               {backendStatus === 'unavailable' && (
                 <button className="status-button" onClick={this.checkBackendAvailability}>
                   Retry connection
                 </button>
               )}
-            </section>
-          </main>
-        ) : route === 'home' ? (
+            </div>
+          </section>
+        )}
+
+        {route === 'home' ? (
           <>
-            <Navigation isSignedIn={isSignedIn} onRouteChange={this.handleRouteChange} />
           <div className="home-container">
             <Logo />
 
@@ -343,12 +368,10 @@ class App extends Component {
           </>
         ) : route === 'signin' ? (
           <>
-            <Navigation isSignedIn={isSignedIn} onRouteChange={this.handleRouteChange} />
             <SignInForm loadUser={this.setSignedInUser} onRouteChange={this.handleRouteChange} />
           </>
         ) : (
           <>
-            <Navigation isSignedIn={isSignedIn} onRouteChange={this.handleRouteChange} />
             <Register loadUser={this.setSignedInUser} onRouteChange={this.handleRouteChange} />
           </>
         )}
