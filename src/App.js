@@ -1,5 +1,6 @@
 // This file is the main frontend controller that manages app state, routes, backend checks, and image scanning flow.
 import React, { Component } from 'react';
+import axios from 'axios';
 import Particles, { initParticlesEngine } from '@tsparticles/react';
 import { loadSlim } from '@tsparticles/slim';
 import FaceRecognition from './components/FaceRecognition/FaceRecognition';
@@ -119,15 +120,10 @@ class App extends Component {
     }
 
     try {
-      // Ask the backend health route for a quick response.
-      const response = await fetch(`${API_URL}/`, {
+      // Axios throws automatically for bad HTTP responses and keeps the abort signal support.
+      await axios.get(`${API_URL}/`, {
         signal: requestAbortController.signal
       });
-
-      // A non-200 response means the backend replied, but not in a healthy way.
-      if (!response.ok) {
-        throw new Error(`Health check failed with status ${response.status}`);
-      }
 
       // If the request worked, unlock the app and clear the status message.
       this.setState({
@@ -217,20 +213,9 @@ class App extends Component {
       return;
     }
 
-    fetch(`${API_URL}/image`, {
-      method: 'put',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id: this.state.user.id })
-    })
-      .then(async res => {
-        // Read the response text on failure so debugging is easier.
-        if (!res.ok) {
-          const text = await res.text(); // fallback to see HTML errors
-          throw new Error(`Server error: ${text}`);
-        }
-        return res.json();
-      })
-      .then(count => {
+    axios.put(`${API_URL}/image`, { id: this.state.user.id })
+      .then((response) => {
+        const count = response.data;
         if (typeof count !== 'number') {
           console.warn('Unexpected response from /image:', count);
           return;
@@ -246,7 +231,7 @@ class App extends Component {
       .catch(err => {
         console.error('Error updating entries:', err);
         this.setState({
-          detectMessage: 'Face detected, but the backend server is unavailable right now.',
+          detectMessage: err.response?.data || 'Face detected, but the backend server is unavailable right now.',
           detectStatusMessage: ''
         });
       });

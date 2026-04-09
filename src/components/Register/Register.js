@@ -1,5 +1,6 @@
 // This file renders the registration form and handles the frontend side of creating a new account.
 import React, { useState } from 'react';
+import axios from 'axios';
 import { API_URL, isApiConfigured } from '../../config';
 import { isValidEmail } from '../../utils/validation';
 import '../SignInForm/AuthForm.css';
@@ -44,17 +45,14 @@ const Register = ({ onRouteChange, loadUser }) => {
     }, 4000);
 
     try {
-      const response = await fetch(`${API_URL}/register`, {
-        method: 'post',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name: name.trim(),
-          email: email.trim(),
-          password: password.trim()
-        })
+      // Axios gives the parsed backend JSON directly in response.data.
+      const response = await axios.post(`${API_URL}/register`, {
+        name: name.trim(),
+        email: email.trim(),
+        password: password.trim()
       });
 
-      const data = await response.json();
+      const data = response.data;
 
       if (data.error) {
         setError(data.error);
@@ -66,7 +64,7 @@ const Register = ({ onRouteChange, loadUser }) => {
       }
     } catch (err) {
       console.error('Register error:', err);
-      setError('Backend server is unavailable. Try again later.');
+      setError(err.response?.data || 'Backend server is unavailable. Try again later.');
     } finally {
       clearTimeout(slowServerTimer);
       setIsLoading(false);                      // ← stop loading
