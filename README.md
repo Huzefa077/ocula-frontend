@@ -38,6 +38,7 @@ The frontend communicates with a backend API to handle authentication, user data
 
 * **Node.js:** 20.x
 * **npm:** 10.x
+* **Package Manager:** npm
 
 ---
 
