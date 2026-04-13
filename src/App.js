@@ -1,8 +1,6 @@
 // This file is the main frontend controller that manages app state, routes, backend checks, and image scanning flow.
-import React, { Component } from 'react';
+import React, { Component, Suspense, lazy } from 'react';
 import axios from 'axios';
-import Particles, { initParticlesEngine } from '@tsparticles/react';
-import { loadSlim } from '@tsparticles/slim';
 import FaceRecognition from './components/FaceRecognition/FaceRecognition';
 import Navigation from './components/Navigation/Navigation';
 import SignInForm from './components/SignInForm/SignInForm';
@@ -15,30 +13,7 @@ import './App.css';
 
 const HEALTH_CHECK_TIMEOUT_MS = 10000;
 const HEALTH_RETRY_DELAY_MS = 4000;
-
-const particlesOptions = {
-  background: {
-    color: { value: '#2d26ad' },
-    image: 'linear-gradient(90deg, #2225ec 0%, #4bdcf0 100%)'
-  },
-  fullScreen: { enable: true, zIndex: -1 },
-  fpsLimit: 80,
-  particles: {
-    number: { value: 60 },
-    color: { value: '#f6f9fa' },
-    links: { enable: true, distance: 140, color: '#f9f9f9', opacity: 0.5 },
-    move: { enable: true, speed: 0.5 },
-    opacity: { value: 0.5 },
-    size: { value: { min: 1, max: 4 } }
-  },
-  interactivity: {
-    events: {
-      onHover: { enable: true, mode: 'repulse' },
-      onClick: { enable: true, mode: 'push' }
-    }
-  },
-  detectRetina: true
-};
+const ParticlesBackground = lazy(() => import('./components/ParticlesBackground/ParticlesBackground'));
 
 const initialUser = { id: '', name: '', email: '', entries: 0, joined: '' };
 
@@ -49,7 +24,7 @@ class App extends Component {
     this.activeHealthCheckController = null;
     // Stores the retry timer id so we can stop old retry loops when needed.
     this.healthRetryTimerId = null;
-    
+
     this.state = {
       input: '',
       imageUrl: '',
@@ -72,9 +47,7 @@ class App extends Component {
   }
 
   componentDidMount() {
-    initParticlesEngine(async (engine) => await loadSlim(engine))
-      .then(() => this.setState({ init: true }));
-
+    this.setState({ init: true });
     this.checkBackendAvailability();
   }
 
@@ -122,12 +95,12 @@ class App extends Component {
     try {
       // Old fetch version for comparison:
       // const response = await fetch(`${API_URL}/`, {
-        //   signal: requestAbortController.signal
-        // });
-        // if (!response.ok) {
-          //   throw new Error(`Health check failed with status ${response.status}`);
-          // }
-      
+      //   signal: requestAbortController.signal
+      // });
+      // if (!response.ok) {
+      //   throw new Error(`Health check failed with status ${response.status}`);
+      // }
+
       // Axios throws automatically for bad HTTP responses and keeps the abort signal support.
       await axios.get(`${API_URL}/`, {
         signal: requestAbortController.signal
@@ -301,7 +274,11 @@ class App extends Component {
 
     return (
       <div className="App">
-        {init && <Particles id="tsparticles" options={particlesOptions} />}
+        {init && (
+          <Suspense fallback={null}>
+            <ParticlesBackground />
+          </Suspense>
+        )}
 
         <Navigation isSignedIn={isSignedIn} onRouteChange={this.handleRouteChange} />
 
@@ -324,47 +301,46 @@ class App extends Component {
 
         {route === 'home' ? (
           <>
-          <div className="home-container">
-            <Logo />
+            <div className="home-container">
+              <Logo />
 
-            <ImageLinkForm
-              onInputChange={this.handleImageInputChange}
-              onButtonSubmit={this.handleImageSubmit}
-              onCancelDetect={this.handleDetectCancel}
-              name={user.name}
-              inputValue={input}
-              isDetecting={isDetecting}
-            />
+              <ImageLinkForm
+                onInputChange={this.handleImageInputChange}
+                onButtonSubmit={this.handleImageSubmit}
+                onCancelDetect={this.handleDetectCancel}
+                name={user.name}
+                inputValue={input}
+                isDetecting={isDetecting}
+              />
 
-            <Rank entries={user.entries} />
+              <Rank entries={user.entries} />
 
-            {isDetecting && (
-              <div className="detect-loading">
-                <p>{detectStatusMessage || 'Please wait...'}</p>
-              </div>
-            )}
+              {isDetecting && (
+                <div className="detect-loading">
+                  <p>{detectStatusMessage || 'Please wait...'}</p>
+                </div>
+              )}
 
-            <FaceRecognition
-              imageUrl={imageUrl}
-              isDetecting={isDetecting}
-              scanSessionId={scanSessionId}
-              onDetectStart={this.handleDetectStart}
-              onDetectSuccess={this.handleDetectSuccess}
-              onDetectFail={this.handleDetectFail}
-            />
+              <FaceRecognition
+                imageUrl={imageUrl}
+                isDetecting={isDetecting}
+                scanSessionId={scanSessionId}
+                onDetectStart={this.handleDetectStart}
+                onDetectSuccess={this.handleDetectSuccess}
+                onDetectFail={this.handleDetectFail}
+              />
 
-            {detectMessage && !isDetecting && (
-              <p
-                className={`detect-message ${
-                  detectMessage.includes('No faces') || detectMessage.includes('no face')
-                    ? 'detect-message-warning'
-                    : 'detect-message-error'
-                }`}
-              >
-                {detectMessage}
-              </p>
-            )}
-          </div>
+              {detectMessage && !isDetecting && (
+                <p
+                  className={`detect-message ${detectMessage.includes('No faces') || detectMessage.includes('no face')
+                      ? 'detect-message-warning'
+                      : 'detect-message-error'
+                    }`}
+                >
+                  {detectMessage}
+                </p>
+              )}
+            </div>
           </>
         ) : route === 'signin' ? (
           <>
