@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import { API_URL, isApiConfigured } from '../../config';
+import { storeAuthToken } from '../../utils/auth';
 import { isValidEmail } from '../../utils/validation';
 import '../SignInForm/AuthForm.css';
 
@@ -68,8 +69,9 @@ const Register = ({ onRouteChange, loadUser }) => {
 
       if (data.error) {
         setError(data.error);
-      } else if (data.id) {
-        loadUser(data);
+      } else if (data.user?.id && data.token) {
+        storeAuthToken(data.token);
+        loadUser(data.user);
         onRouteChange('home');
       } else {
         setError('Registration failed. Try again.');

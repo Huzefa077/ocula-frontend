@@ -8,14 +8,16 @@ import Register from './components/Register/Register';
 import Logo from './components/Logo/Logo';
 import ImageLinkForm from './components/ImageLinkForm/ImageLinkForm';
 import Rank from './components/Rank/Rank';
+import AdminPanel from './components/AdminPanel/AdminPanel';
 import { API_URL, isApiConfigured } from './config';
+import { buildAuthHeaders, clearAuthToken } from './utils/auth';
 import './App.css';
 
 const HEALTH_CHECK_TIMEOUT_MS = 10000;
 const HEALTH_RETRY_DELAY_MS = 4000;
 const ParticlesBackground = lazy(() => import('./components/ParticlesBackground/ParticlesBackground'));
 
-const initialUser = { id: '', name: '', email: '', entries: 0, joined: '' };
+const initialUser = { id: '', name: '', email: '', entries: 0, joined: '', role: 'user' };
 
 class App extends Component {
   constructor() {
@@ -24,6 +26,10 @@ class App extends Component {
     this.activeHealthCheckController = null;
     // Stores the retry timer id so we can stop old retry loops when needed.
     this.healthRetryTimerId = null;
+    // Stores the countdown interval so the retry message can update once per second.
+    this.healthRetryCountdownTimerId = null;
+    // Stores the short success timer so the connected banner can fade out gracefully.
+    this.backendConnectedTimerId = null;
 
     this.state = {
       input: '',
@@ -38,6 +44,7 @@ class App extends Component {
       backendMessage: isApiConfigured
         ? 'Checking backend server...'
         : 'App configuration is missing the backend API URL.',
+      retrySecondsLeft: 0,
 
       route: 'signin',
       isSignedIn: false,
@@ -60,11 +67,51 @@ class App extends Component {
     if (this.healthRetryTimerId) {
       clearTimeout(this.healthRetryTimerId);
     }
+
+    if (this.healthRetryCountdownTimerId) {
+      clearInterval(this.healthRetryCountdownTimerId);
+    }
+
+    if (this.backendConnectedTimerId) {
+      clearTimeout(this.backendConnectedTimerId);
+    }
   }
 
+  startRetryCountdown = () => {
+    let secondsLeft = Math.ceil(HEALTH_RETRY_DELAY_MS / 1000);
+
+    if (this.healthRetryCountdownTimerId) {
+      clearInterval(this.healthRetryCountdownTimerId);
+    }
+
+    this.setState({
+      backendStatus: 'retrying',
+      retrySecondsLeft: secondsLeft,
+      backendMessage: `Retry in ${secondsLeft}s`
+    });
+
+    this.healthRetryCountdownTimerId = setInterval(() => {
+      secondsLeft -= 1;
+
+      if (secondsLeft <= 0) {
+        clearInterval(this.healthRetryCountdownTimerId);
+        this.healthRetryCountdownTimerId = null;
+        this.setState({
+          retrySecondsLeft: 0,
+          backendMessage: 'Retrying...'
+        });
+        return;
+      }
+
+      this.setState({
+        retrySecondsLeft: secondsLeft,
+        backendMessage: `Retry in ${secondsLeft}s`
+      });
+    }, 1000);
+  };
+
   // This function checks whether the backend server can be reached before the user starts using the app.
-  // `silent` means "retry quietly" without showing the full checking message again on screen.
-  checkBackendAvailability = async ({ silent = false } = {}) => {
+  checkBackendAvailability = async () => {
     // If the API URL is missing, there is nothing to check yet.
     if (!isApiConfigured) return;
 
@@ -79,18 +126,26 @@ class App extends Component {
       this.healthRetryTimerId = null;
     }
 
+    if (this.healthRetryCountdownTimerId) {
+      clearInterval(this.healthRetryCountdownTimerId);
+      this.healthRetryCountdownTimerId = null;
+    }
+
+    if (this.backendConnectedTimerId) {
+      clearTimeout(this.backendConnectedTimerId);
+      this.backendConnectedTimerId = null;
+    }
+
     // Create a fresh controller and timeout for this specific health check request.
     const requestAbortController = new AbortController();
     const healthCheckTimeoutId = setTimeout(() => requestAbortController.abort(), HEALTH_CHECK_TIMEOUT_MS);
     this.activeHealthCheckController = requestAbortController;
 
-    // Only show the checking message when this is a visible check, not a silent background retry.
-    if (!silent) {
-      this.setState({
-        backendStatus: 'checking',
-        backendMessage: 'Checking backend server...'
-      });
-    }
+    this.setState({
+      backendStatus: 'checking',
+      backendMessage: 'Connecting...',
+      retrySecondsLeft: 0
+    });
 
     try {
       // Old fetch version for comparison:
@@ -106,26 +161,31 @@ class App extends Component {
         signal: requestAbortController.signal
       });
 
-      // If the request worked, unlock the app and clear the status message.
+      // Show a short success state before removing the banner completely.
       this.setState({
-        backendStatus: 'available',
-        backendMessage: ''
+        backendStatus: 'connected',
+        backendMessage: 'Ready',
+        retrySecondsLeft: 0
       });
+
+      this.backendConnectedTimerId = setTimeout(() => {
+        this.setState({
+          backendStatus: 'available',
+          backendMessage: '',
+          retrySecondsLeft: 0
+        });
+        this.backendConnectedTimerId = null;
+      }, 1200);
     } catch (error) {
       console.error('Backend health check failed:', error);
 
-      // Show a user-friendly message and mark the backend as unavailable.
-      this.setState({
-        backendStatus: 'unavailable',
-        backendMessage: error.name === 'AbortError'
-          ? `Server is temporarily unavailable.`
-          : 'Unable to reach backend.'
-      });
+      this.startRetryCountdown();
 
-      // Keep retrying quietly in case the backend wakes up a few seconds later.
+      // Keep retrying automatically, but now the user can actually see that it is happening.
       this.healthRetryTimerId = setTimeout(() => {
-        this.checkBackendAvailability({ silent: true });
+        this.checkBackendAvailability();
       }, HEALTH_RETRY_DELAY_MS);
+
     } finally {
       // Always clear the timeout once this health check finishes.
       clearTimeout(healthCheckTimeoutId);
@@ -208,7 +268,9 @@ class App extends Component {
     //     return res.json();
     //   })
     //   .then(count => {
-    axios.put(`${API_URL}/image`, { id: this.state.user.id })
+    axios.put(`${API_URL}/image`, { id: this.state.user.id }, {
+      headers: buildAuthHeaders()
+    })
       .then((response) => {
         const count = response.data;
         if (typeof count !== 'number') {
@@ -242,6 +304,7 @@ class App extends Component {
 
   handleRouteChange = (route) => {
     if (route === 'signout') {
+      clearAuthToken();
       // Reset app state on sign out so the next session starts clean.
       this.setState({
         input: '', imageUrl: '', detectMessage: '', detectStatusMessage: '', isDetecting: false,
@@ -267,10 +330,19 @@ class App extends Component {
       isDetecting,
       scanSessionId,
       backendStatus,
-      backendMessage
+      backendMessage,
+      retrySecondsLeft
     } = this.state;
 
     const showBackendStatusBanner = backendStatus !== 'available';
+    const showStatusLoader = backendStatus === 'checking' || backendStatus === 'retrying';
+    const statusTitle = backendStatus === 'connected'
+      ? 'Backend connected'
+      : backendStatus === 'retrying'
+        ? 'Waking server'
+        : backendStatus === 'missing-config'
+          ? 'Setup needed'
+          : 'Starting Ocula';
 
     return (
       <div className="App">
@@ -280,19 +352,29 @@ class App extends Component {
           </Suspense>
         )}
 
-        <Navigation isSignedIn={isSignedIn} onRouteChange={this.handleRouteChange} />
+        <Navigation
+          isSignedIn={isSignedIn}
+          isAdmin={user.role === 'admin'}
+          onRouteChange={this.handleRouteChange}
+        />
 
         {showBackendStatusBanner && (
           <section className="status-banner">
             <div className="status-banner-content">
-              <p className="status-banner-message">
-                {backendStatus === 'checking' ? 'Starting Ocula. ' : ''}
-                {backendMessage}
-              </p>
-              {backendStatus === 'checking' && <div className="status-loader"></div>}
-              {backendStatus === 'unavailable' && (
+              <div className="status-banner-top">
+                <div className="status-banner-copy">
+                  <p className="status-banner-title">{statusTitle}</p>
+                  <p className="status-banner-message">{backendMessage}</p>
+                </div>
+                {showStatusLoader && <div className="status-loader" />}
+                {backendStatus === 'connected' && <div className="status-connected-indicator">Connected</div>}
+              </div>
+              {backendStatus === 'retrying' && retrySecondsLeft > 0 && (
+                <p className="status-banner-hint">Retrying automatically</p>
+              )}
+              {(backendStatus === 'retrying' || backendStatus === 'unavailable') && (
                 <button className="status-button" onClick={this.checkBackendAvailability}>
-                  Retry connection
+                  Retry now
                 </button>
               )}
             </div>
@@ -309,11 +391,14 @@ class App extends Component {
                 onButtonSubmit={this.handleImageSubmit}
                 onCancelDetect={this.handleDetectCancel}
                 name={user.name}
+                role={user.role}
                 inputValue={input}
                 isDetecting={isDetecting}
               />
 
               <Rank entries={user.entries} />
+
+              {user.role === 'admin' && <AdminPanel />}
 
               {isDetecting && (
                 <div className="detect-loading">

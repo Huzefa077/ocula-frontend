@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import { API_URL, isApiConfigured } from '../../config';
+import { storeAuthToken } from '../../utils/auth';
 import { isValidEmail } from '../../utils/validation';
 import './AuthForm.css';
 
@@ -68,12 +69,12 @@ const SignInForm = ({ onRouteChange, loadUser }) => {
 
       const data = response.data;
 
-      // Surface a backend error message when sign-in fails.
       if (data.error) {
         setError(data.error);
-      // A returned id means the user was authenticated successfully.
-      } else if (data.id) {
-        loadUser(data);
+      // The backend now returns both the signed-in user and the JWT token.
+      } else if (data.user?.id && data.token) {
+        storeAuthToken(data.token);
+        loadUser(data.user);
         onRouteChange('home');
       // Handle unexpected response shapes safely.
       } else {

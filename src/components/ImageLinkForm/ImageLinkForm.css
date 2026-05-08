@@ -10,6 +10,38 @@
   align-items: center;
 }
 
+.image-link-form-greeting {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+
+.image-link-form-greeting-top {
+  display: inline-flex;
+  align-items: center;
+}
+
+.image-link-form-greeting-bottom {
+  display: block;
+  width: 100%;
+}
+
+.image-link-form-admin-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.2rem 0.65rem;
+  border-radius: 999px;
+  background: rgba(255, 215, 99, 0.2);
+  border: 1px solid rgba(255, 215, 99, 0.45);
+  color: #fff2bf;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
 .form {
   width: 85vw;
   /* max-width: 500px; */
@@ -47,6 +79,11 @@
     width: 95vw;
     padding: 0.7rem;
   }
+
+  .image-link-form-greeting {
+    gap: 0.45rem;
+  }
+
   input, button {
     font-size: 0.85rem;
   }

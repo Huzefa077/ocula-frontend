@@ -5,6 +5,12 @@
   margin: 0.5rem 0;
 }
 
+.rank-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
 /* Mobile scaling */
 @media (max-width: 515px) {
   .rank-text {

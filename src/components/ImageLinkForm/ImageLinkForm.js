@@ -8,6 +8,7 @@ const ImageLinkForm = ({
   onButtonSubmit, 
   onCancelDetect,
   name, 
+  role = 'user',
   inputValue, 
   isDetecting
 }) => {
@@ -19,9 +20,14 @@ const ImageLinkForm = ({
   return (
     <div className="image-link-form-wrapper">
       <div className="glow-text yellow">
-        <p className="f3 mt4">
-          Hello {name}!<br />
-          Paste an image URL to detect faces.<br />
+        <p className="f3 mt4 image-link-form-greeting">
+          <span className="image-link-form-greeting-top">
+            Hello {name}!
+          </span>
+          {role === 'admin' && <span className="image-link-form-admin-badge">Admin</span>}
+          <span className="image-link-form-greeting-bottom">
+            Paste an image URL to detect faces.
+          </span>
         </p>
       </div>
 
