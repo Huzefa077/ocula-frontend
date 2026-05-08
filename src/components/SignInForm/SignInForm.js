@@ -45,7 +45,7 @@ const SignInForm = ({ onRouteChange, loadUser }) => {
 
     // Render can be slow on first request, so show a gentle status message.
     const slowServerTimer = setTimeout(() => {
-      setStatusMessage('Server is taking longer than usual. It may be waking up, please wait...');
+      setStatusMessage('Server waking up, please wait...');
     }, 3000);
 
     try {

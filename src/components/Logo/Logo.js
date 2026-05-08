@@ -8,6 +8,7 @@ const Logo = () => {
 
   useEffect(() => {
     const handleMouseMove = (e) => {
+      // Each eye calculates the angle from its center to the mouse pointer.
       const eyes = document.querySelectorAll('.eye');
       eyes.forEach(eye => {
         const rect = eye.getBoundingClientRect();
@@ -18,7 +19,7 @@ const Logo = () => {
         const dy = e.clientY - eyeY;
 
         const angle = Math.atan2(dy, dx);
-        const radius = 0.2 * rect.width; // max pupil movement
+        const radius = 0.2 * rect.width; // Keep the pupil inside the eye.
 
         const pupil = eye.querySelector('.pupil');
         if (pupil) {
@@ -27,6 +28,7 @@ const Logo = () => {
       });
     };
 
+    // Listen globally so the pupils keep tracking even when the mouse is outside the logo.
     window.addEventListener('mousemove', handleMouseMove);
     return () => window.removeEventListener('mousemove', handleMouseMove);
   }, []);
@@ -46,7 +48,7 @@ const Logo = () => {
             className="logo-brain"
           />
 
-          {/* Eyes */}
+          {/* CSS positions the eyes over the brain image; JS above moves the pupils. */}
           <div className="eye eye-left">
             <span className="pupil"></span>
           </div>
