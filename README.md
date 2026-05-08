@@ -1,85 +1,78 @@
 # Ocula Frontend
 
-This repository contains the frontend application for the **Ocula** full-stack project. It is built with React and provides an interactive user interface for authentication, image-based face detection, and AI-generated face analysis.
+React frontend for **Ocula**, a full-stack face analysis app where users can sign in, submit an image URL, detect faces, and view simple face details such as estimated age, gender, and expression.
 
-🔗 **Live Demo:** [https://ocula-frontend.vercel.app/](https://ocula-frontend.vercel.app/)
+This frontend was built as a learning-focused React project with real app concerns: API configuration, authentication state, protected backend calls, loading states, face detection models, and deployment on Vercel.
 
----
+## Live Links
 
-## Overview
+- Frontend Demo: [https://ocula-frontend.vercel.app/](https://ocula-frontend.vercel.app/)
+- Backend API: [https://ocula-server.onrender.com](https://ocula-server.onrender.com)
+- Backend Docs: [https://ocula-server.onrender.com/docs](https://ocula-server.onrender.com/docs)
 
-The application enables users to:
+## What This Frontend Handles
 
-* Register and sign in securely
-* Submit an image URL
-* Detect one or multiple faces within an image
-* View AI-generated face summaries, including:
-
-  * Estimated age
-  * Gender
-  * Facial expression
-
-The frontend communicates with a backend API to handle authentication, user data, and processing requests.
-
----
+- User registration and sign in
+- JWT token storage in browser local storage
+- Authenticated requests to the backend API
+- Image URL submission
+- Face detection using local `face-api.js` models
+- Face detail display for detected faces
+- Scan count updates for signed-in users
+- Backend availability checks and retry messages
+- Admin-only user management panel
 
 ## Tech Stack
 
-* **JavaScript (ES6+)**
-* **React 19**
-* **CSS**
-* **Tachyons**
-* **face-api.js**
-* **tsParticles**
-
----
-
-## Runtime Versions
-
-* **Node.js:** 20.x
-* **npm:** 10.x
-* **Package Manager:** npm
-
----
+- React
+- JavaScript
+- CSS
+- Axios
+- face-api.js
+- Tachyons
+- tsParticles
+- Vercel
 
 ## Project Structure
 
-```
+```text
 ocula-frontend/
-├── public/
-│   └── models/
-├── src/
-│   ├── components/
-│   ├── utils/
-│   ├── App.css
-│   ├── App.js
-│   └── config.js
-├── .env.example
-├── package.json
-└── README.md
+|-- public/
+|   |-- models/             # Face detection model files
+|   |-- index.html
+|   `-- manifest.json
+|-- src/
+|   |-- components/         # UI components such as forms, logo, admin panel, and face detection
+|   |-- utils/              # Auth token and validation helpers
+|   |-- App.js              # Main app state, routing, and scan flow
+|   |-- config.js           # Frontend API URL setup
+|   |-- index.js            # React entry point
+|   `-- index.css
+|-- .env.example            # Example frontend environment variable
+|-- package.json
+|-- vercel.json             # Vercel build and rewrite settings
+`-- README.md
 ```
-
----
 
 ## Environment Variables
 
-Create a `.env` file in the project root:
+Create a `.env` file locally:
 
 ```env
-REACT_APP_API_URL=https://your-backend-url.onrender.com
+REACT_APP_API_URL=http://localhost:3001
 ```
 
-> ⚠️ All frontend environment variables must begin with `REACT_APP_`.
-
-**Example:**
+For production on Vercel:
 
 ```env
 REACT_APP_API_URL=https://ocula-server.onrender.com
 ```
 
----
+Create React App only exposes frontend variables that start with `REACT_APP_`, so the prefix is required.
 
-## Installation
+Real environment values should stay in local `.env` files or Vercel settings. They should not be committed to GitHub.
+
+## Running Locally
 
 Install dependencies:
 
@@ -87,11 +80,7 @@ Install dependencies:
 npm install
 ```
 
----
-
-## Running the Project
-
-Start the development server:
+Start the React development server:
 
 ```bash
 npm start
@@ -103,47 +92,51 @@ Create a production build:
 npm run build
 ```
 
-Deploy the static build to GitHub Pages:
+Run tests:
 
 ```bash
-npm run deploy
+npm test
 ```
 
----
+Default local frontend:
 
-## Deployment
+```text
+http://localhost:3000
+```
 
-### Vercel (Recommended)
+## Deployment Notes
 
-Use the following configuration:
+This frontend is deployed on Vercel.
 
-* **Framework Preset:** Create React App
-* **Root Directory:** `ocula-frontend`
-* **Build Command:** `npm run build`
-* **Output Directory:** `build`
+Vercel setup:
 
-Ensure the `REACT_APP_API_URL` environment variable is configured in your Vercel project settings.
+- Framework Preset: Create React App
+- Root Directory: `ocula-frontend`
+- Build Command: `npm run build`
+- Output Directory: `build`
+- Environment Variable: `REACT_APP_API_URL`
 
----
+The backend is deployed separately on Render. The frontend calls the backend URL from `REACT_APP_API_URL`.
 
-### GitHub Pages
+## What I Learned
 
-This project supports static deployment using the `gh-pages` package.
+This project helped me practice:
 
----
+- Managing React app state across authentication and image scanning
+- Connecting a React frontend to a separate Express backend
+- Sending JWT tokens in request headers
+- Handling loading, success, and error states in the UI
+- Using local face detection models in the browser
+- Deploying a React app with environment variables on Vercel
 
 ## Notes
 
-* The frontend depends on a backend API defined via `REACT_APP_API_URL`.
-* Face detection models are stored locally in `public/models`.
-* AI-generated face summaries are estimates and may not always be accurate.
-
----
+- Face detection runs in the browser using model files stored in `public/models`.
+- Age, gender, and expression results are estimates from the model and may not always be accurate.
+- The admin panel appears only when the signed-in user has an admin role from the backend token/user profile.
 
 ## Related Project
 
-The backend service for this application is available here:
+Backend repository/folder: `ocula-server`
 
-🔗 [https://github.com/Huzefa077/ocula-server](https://github.com/Huzefa077/ocula-server)
-
-The backend is responsible for handling authentication, API endpoints, user data management, and integrating AI processing services.
+Live backend: [https://ocula-server.onrender.com](https://ocula-server.onrender.com)
