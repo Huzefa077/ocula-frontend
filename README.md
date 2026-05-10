@@ -6,7 +6,9 @@ This frontend was built as a learning-focused React project with real app concer
 
 ## Live Links
 
-- Frontend Demo: [https://ocula-frontend.vercel.app/](https://ocula-frontend.vercel.app/)
+- [https://ocula-frontend.vercel.app/](https://ocula-frontend.vercel.app/)
+
+## Other Links
 - Backend API: [https://ocula-server.onrender.com](https://ocula-server.onrender.com)
 - Backend Docs: [https://ocula-server.onrender.com/docs](https://ocula-server.onrender.com/docs)
 
