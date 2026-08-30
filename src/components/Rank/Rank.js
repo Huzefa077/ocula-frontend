@@ -5,9 +5,8 @@ import './Rank.css';
 const Rank = ({ entries = 0 }) => {  // default 0
   return (
     <div className="rank-card">
-      <div className='white f3 pa3'>
-        {`URLs processed: ${entries}`}
-      </div>
+      <span className="rank-label">Images scanned</span>
+      <strong className="rank-value">{entries}</strong>
     </div>
   );
 }

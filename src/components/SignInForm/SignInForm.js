@@ -1,153 +1,154 @@
-// This file renders the sign-in form and handles the frontend side of logging a user in.
+// This file renders sign in, Google sign in, guest mode, and account recovery actions.
 import React, { useState } from 'react';
 import axios from 'axios';
 import { API_URL, isApiConfigured } from '../../config';
 import { storeAuthToken } from '../../utils/auth';
 import { isValidEmail } from '../../utils/validation';
+import GoogleSignInButton from './GoogleSignInButton';
 import './AuthForm.css';
 
-const SignInForm = ({ onRouteChange, loadUser }) => {
-  // Track the email value typed by the user.
+const SignInForm = ({ onRouteChange, loadUser, onGuestMode }) => {
   const [email, setEmail] = useState('');
-  // Track the password value typed by the user.
   const [password, setPassword] = useState('');
-  // Hold validation or server errors that should be shown above the form.
   const [error, setError] = useState('');
-  // Hold a temporary status message while the backend is still responding.
   const [statusMessage, setStatusMessage] = useState('');
-  // Lock the form while a sign-in request is in progress.
   const [isLoading, setIsLoading] = useState(false);
+  const [canResendVerification, setCanResendVerification] = useState(false);
 
-  // Handles the full sign-in flow for the form.
+  const completeSignIn = (data) => {
+    storeAuthToken(data.token);
+    loadUser(data.user);
+    onRouteChange('home');
+  };
+
   const handleSignIn = async () => {
-    // Require both fields before continuing.
     if (!email.trim() || !password.trim()) {
       setError('* All fields are required');
       return;
     }
 
-    // Validate the email format on the frontend first.
     if (!isValidEmail(email.trim())) {
       setError('Enter a valid email address');
       return;
     }
 
-    // Stop here if the app does not know where the backend lives.
     if (!isApiConfigured) {
       setError('App configuration is missing the backend API URL.');
       return;
     }
 
-    // Reset any previous messages and show the loading state.
     setError('');
     setStatusMessage('');
+    setCanResendVerification(false);
     setIsLoading(true);
 
-    // Render can be slow on first request, so show a gentle status message.
     const slowServerTimer = setTimeout(() => {
       setStatusMessage('Server waking up, please wait...');
     }, 3000);
 
     try {
-      // Old fetch version for comparison:
-      // const response = await fetch(`${API_URL}/signin`, {
-        //   method: 'post',
-        //   headers: { 'Content-Type': 'application/json' },
-        //   body: JSON.stringify({
-      //     email: email.trim(),
-      //     password: password.trim()
-      //   })
-      // });
-      // const data = await response.json();
-      
-      
-      // Axios gives the parsed backend JSON directly in response.data.
       const response = await axios.post(`${API_URL}/signin`, {
         email: email.trim(),
         password: password.trim()
       });
 
-      const data = response.data;
-
-      if (data.error) {
-        setError(data.error);
-      // The backend now returns both the signed-in user and the JWT token.
-      } else if (data.user?.id && data.token) {
-        storeAuthToken(data.token);
-        loadUser(data.user);
-        onRouteChange('home');
-      // Handle unexpected response shapes safely.
-      } else {
-        setError('Sign in failed. Try again.');
-      }
+      completeSignIn(response.data);
     } catch (err) {
-      // Network or backend availability problems are handled here.
-      console.error('Sign in error:', err);
-      setError(err.response?.data || 'Backend server is unavailable. Try again later.');
+      const message = err.response?.data || 'Backend server is unavailable. Try again later.';
+      setError(message);
+      setCanResendVerification(String(message).toLowerCase().includes('verify'));
     } finally {
-      // Always stop the timer and restore the form controls.
       clearTimeout(slowServerTimer);
       setIsLoading(false);
     }
   };
 
+  const handleGoogleCredential = async (credential) => {
+    if (!isApiConfigured) {
+      setError('App configuration is missing the backend API URL.');
+      return;
+    }
+
+    setError('');
+    setStatusMessage('Signing in with Google...');
+    setIsLoading(true);
+
+    try {
+      const response = await axios.post(`${API_URL}/auth/google`, { credential });
+      completeSignIn(response.data);
+    } catch (err) {
+      setError(err.response?.data || 'Google sign-in failed.');
+    } finally {
+      setStatusMessage('');
+      setIsLoading(false);
+    }
+  };
+
+  const handleResendVerification = async () => {
+    if (!isValidEmail(email.trim())) {
+      setError('Enter your email first, then resend verification.');
+      return;
+    }
+
+    setIsLoading(true);
+    setError('');
+
+    try {
+      const response = await axios.post(`${API_URL}/resend-verification`, { email: email.trim() });
+      setStatusMessage(response.data.message || 'Verification email sent.');
+      setCanResendVerification(false);
+    } catch (err) {
+      setError(err.response?.data || 'Unable to resend verification email.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
-    // Center the sign-in card on the page.
-    <article className="br3 ba dark-gray b--black-10 mv4 w-100 w-50-m w-25-l mw6 shadow-5 center">
-      {/* Form content wrapper. */}
-      <main className="pa4 black-80">
-        {/* Keep the form at a readable width. */}
-        <div className="measure">
-          {/* Group the sign-in inputs together semantically. */}
+    <article className="auth-card">
+      <main className="auth-main">
+        <p className="auth-kicker">Ocula face analysis</p>
+        <h1 className="auth-title">Sign in</h1>
+
+        <div className="measure auth-form-stack">
           <fieldset id="sign_in" className="ba b--transparent ph0 mh0">
-            <legend className="f1 fw6 ph0 mh0">Sign In</legend>
+            <legend className="clip">Sign In</legend>
 
-            {/* Show blocking errors first. */}
             {error && <p className="form-message form-message-error">{error}</p>}
-            {/* Show a soft waiting message only when there is no error. */}
             {!error && statusMessage && <p className="form-message form-message-status">{statusMessage}</p>}
+            {canResendVerification && (
+              <button className="auth-link-button" onClick={handleResendVerification} type="button" disabled={isLoading}>
+                Resend verification email
+              </button>
+            )}
 
-            {/* Email input block. */}
             <div className="mt3">
               <label className="db fw6 lh-copy f6">Email</label>
-              <input
-                className="pa2 input-reset ba bg-transparent w-100"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                disabled={isLoading}
-              />
+              <input className="auth-input" type="email" value={email} onChange={(e) => setEmail(e.target.value)} disabled={isLoading} />
             </div>
 
-            {/* Password input block. */}
             <div className="mv3">
               <label className="db fw6 lh-copy f6">Password</label>
-              <input
-                className="b pa2 input-reset ba bg-transparent w-100"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                disabled={isLoading}
-              />
+              <input className="auth-input" type="password" value={password} onChange={(e) => setPassword(e.target.value)} disabled={isLoading} />
             </div>
           </fieldset>
 
-          {/* Submit button for the sign-in request. */}
-          <div>
-            <input
-              className="b ph3 pv2 input-reset ba b--black bg-transparent grow pointer f6"
-              type="submit"
-              value={isLoading ? 'Signing in...' : 'Sign in'}
-              onClick={handleSignIn}
-              disabled={isLoading}
-            />
-          </div>
+          <button className="auth-primary-button" type="button" onClick={handleSignIn} disabled={isLoading} aria-busy={isLoading}>
+            {isLoading && <span className="auth-button-spinner" aria-hidden="true"></span>}
+            {isLoading ? 'Signing in...' : 'Sign in'}
+          </button>
 
-          {/* Link-like action for moving to the registration screen. */}
-          <div className="lh-copy mt3">
-            <p onClick={() => onRouteChange('register')} className="f6 link dim black db pointer">
-              Register
-            </p>
+          <div className="auth-divider">or</div>
+
+          <GoogleSignInButton onCredential={handleGoogleCredential} disabled={isLoading} />
+
+          <button className="auth-secondary-button" type="button" onClick={onGuestMode} disabled={isLoading}>
+            Continue as guest
+          </button>
+
+          <div className="auth-links">
+            <p onClick={() => onRouteChange('register')} className="auth-link">Register</p>
+            <p onClick={() => onRouteChange('forgot-password')} className="auth-link">Forgot password?</p>
           </div>
         </div>
       </main>

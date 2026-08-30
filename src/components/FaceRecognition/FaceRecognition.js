@@ -1,8 +1,10 @@
 // This file loads the face models, scans the image, draws face boxes, and shows the AI face summary.
 import React, { Component } from 'react';
+import { API_URL, isApiConfigured } from '../../config';
 import './FaceRecognition.css';
 
 let faceApiScriptPromise = null;
+let faceApiModelsPromise = null;
 
 // Load the face-api script once and reuse it across renders.
 function loadFaceApiScript() {
@@ -40,16 +42,25 @@ class FaceRecognition extends Component {
     this.canvasRef = React.createRef();
     this.state = {
       faceSummaries: [],
-      faceBoxes: []
+      faceBoxes: [],
+      displayImageUrl: props.imageUrl || '',
+      usingProxy: false
     };
     this.isProcessing = false;
     this.resizeObserver = null;
     this.modelsLoaded = false;
     this.faceapi = null;
+    this.hasReportedSuccessForSession = false;
+    this.latestFaceBoxes = [];
   }
 
   async componentDidMount() {
     await this.loadModels();
+    this.props.onExportReady?.(this.exportAnonymizedImage);
+
+    if (this.imageRef.current?.complete && this.props.imageUrl) {
+      this.detectFaces();
+    }
 
     this.resizeObserver = new ResizeObserver(() => {
       if (this.modelsLoaded && this.imageRef.current) {
@@ -67,14 +78,20 @@ class FaceRecognition extends Component {
     const localModelUrl = `${publicUrl.replace(/\/$/, '')}/models`;
 
     try {
-      // Load all face-api models from the local public folder so deployment stays reliable.
-      this.faceapi = await loadFaceApiScript();
+      if (!faceApiModelsPromise) {
+        faceApiModelsPromise = loadFaceApiScript().then(async (faceapi) => {
+          // Cache model loading so sign-out/sign-in does not download the same models again.
+          await Promise.all([
+            faceapi.nets.tinyFaceDetector.loadFromUri(localModelUrl),
+            faceapi.nets.faceExpressionNet.loadFromUri(localModelUrl),
+            faceapi.nets.ageGenderNet.loadFromUri(localModelUrl)
+          ]);
 
-      await Promise.all([
-        this.faceapi.nets.tinyFaceDetector.loadFromUri(localModelUrl),
-        this.faceapi.nets.faceExpressionNet.loadFromUri(localModelUrl),
-        this.faceapi.nets.ageGenderNet.loadFromUri(localModelUrl)
-      ]);
+          return faceapi;
+        });
+      }
+
+      this.faceapi = await faceApiModelsPromise;
 
       this.modelsLoaded = true;
     } catch (err) {
@@ -87,13 +104,28 @@ class FaceRecognition extends Component {
     if (prevProps.scanSessionId !== this.props.scanSessionId) {
       // Reset any old analysis when a new scan session starts or when the user cancels.
       this.isProcessing = false;
+      this.hasReportedSuccessForSession = false;
+      this.latestFaceBoxes = [];
       this.setState({ faceSummaries: [], faceBoxes: [] });
+      this.props.onFaceBoxesUpdate?.([]);
     }
 
-    if (prevProps.imageUrl !== this.props.imageUrl && this.props.imageUrl && this.modelsLoaded) {
-      this.setState({ faceSummaries: [], faceBoxes: [] });
+    if (prevProps.imageUrl !== this.props.imageUrl && this.props.imageUrl) {
+      this.latestFaceBoxes = [];
+      this.setState({
+        faceSummaries: [],
+        faceBoxes: [],
+        displayImageUrl: this.props.imageUrl,
+        usingProxy: false
+      });
     } else if (prevProps.imageUrl !== this.props.imageUrl && !this.props.imageUrl) {
-      this.setState({ faceSummaries: [], faceBoxes: [] });
+      this.latestFaceBoxes = [];
+      this.setState({ faceSummaries: [], faceBoxes: [], displayImageUrl: '', usingProxy: false });
+      this.props.onFaceBoxesUpdate?.([]);
+    }
+
+    if (prevProps.blurredFaceIds !== this.props.blurredFaceIds) {
+      this.drawFaceOverlay();
     }
   }
 
@@ -110,23 +142,189 @@ class FaceRecognition extends Component {
     )
   );
 
+  createEnhancedImageCanvas = (img) => {
+    const enhancedCanvas = document.createElement('canvas');
+    enhancedCanvas.width = img.naturalWidth;
+    enhancedCanvas.height = img.naturalHeight;
+
+    try {
+      const enhancedContext = enhancedCanvas.getContext('2d');
+      // Low-light fallback: brighten and increase contrast only for detection,
+      // not for display, so the user's original image stays unchanged.
+      enhancedContext.filter = 'brightness(1.18) contrast(1.22)';
+      enhancedContext.drawImage(img, 0, 0, enhancedCanvas.width, enhancedCanvas.height);
+      return enhancedCanvas;
+    } catch (error) {
+      return null;
+    }
+  };
+
+  getSelectedBlurIds = () => new Set(this.props.blurredFaceIds || []);
+
+  drawNumberedBox = (ctx, face) => {
+    const { x, y, width, height } = face.box;
+
+    ctx.save();
+    ctx.strokeStyle = '#00d2ff';
+    ctx.lineWidth = 3;
+    ctx.shadowColor = 'rgba(0, 210, 255, 0.75)';
+    ctx.shadowBlur = 10;
+    ctx.strokeRect(x, y, width, height);
+
+    const label = `#${face.id}`;
+    const labelWidth = 38;
+    const labelHeight = 26;
+    const labelX = Math.max(x, 6);
+    const labelY = Math.max(y - labelHeight - 6, 6);
+
+    ctx.shadowBlur = 0;
+    ctx.fillStyle = '#ffe46e';
+    ctx.fillRect(labelX, labelY, labelWidth, labelHeight);
+    ctx.fillStyle = '#111827';
+    ctx.font = '700 15px Inter, sans-serif';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(label, labelX + 9, labelY + labelHeight / 2);
+    ctx.restore();
+  };
+
+  drawBlurPatch = (ctx, img, face) => {
+    const { x, y, width, height } = face.box;
+    const scaleX = img.naturalWidth / img.clientWidth;
+    const scaleY = img.naturalHeight / img.clientHeight;
+
+    ctx.save();
+    try {
+      // The blur is drawn only inside the selected face rectangle, not over the whole image.
+      ctx.filter = 'blur(14px)';
+      ctx.drawImage(
+        img,
+        x * scaleX,
+        y * scaleY,
+        width * scaleX,
+        height * scaleY,
+        x,
+        y,
+        width,
+        height
+      );
+    } catch (error) {
+      // Some remote hosts block canvas access. This fallback still anonymizes the face visually.
+      ctx.filter = 'none';
+      ctx.fillStyle = 'rgba(2, 8, 23, 0.78)';
+      ctx.fillRect(x, y, width, height);
+    }
+    ctx.restore();
+  };
+
+  drawFaceOverlay = () => {
+    const img = this.imageRef.current;
+    const canvas = this.canvasRef.current;
+    if (!img || !canvas) return;
+
+    const displaySize = { width: img.clientWidth, height: img.clientHeight };
+    canvas.width = displaySize.width;
+    canvas.height = displaySize.height;
+    canvas.style.width = `${displaySize.width}px`;
+    canvas.style.height = `${displaySize.height}px`;
+
+    const ctx = canvas.getContext('2d', { willReadFrequently: true });
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    const selectedBlurIds = this.getSelectedBlurIds();
+    this.latestFaceBoxes.forEach((face) => {
+      if (selectedBlurIds.has(face.id)) {
+        this.drawBlurPatch(ctx, img, face);
+      }
+    });
+
+    this.latestFaceBoxes.forEach((face) => this.drawNumberedBox(ctx, face));
+  };
+
+  exportAnonymizedImage = () => {
+    const img = this.imageRef.current;
+    if (!img || !this.latestFaceBoxes.length) return false;
+
+    const selectedBlurIds = this.getSelectedBlurIds();
+    if (!selectedBlurIds.size) return false;
+
+    const outputCanvas = document.createElement('canvas');
+    outputCanvas.width = img.naturalWidth;
+    outputCanvas.height = img.naturalHeight;
+
+    const outputContext = outputCanvas.getContext('2d');
+    const scaleX = img.naturalWidth / img.clientWidth;
+    const scaleY = img.naturalHeight / img.clientHeight;
+
+    try {
+      outputContext.drawImage(img, 0, 0, outputCanvas.width, outputCanvas.height);
+
+      this.latestFaceBoxes.forEach((face) => {
+        if (!selectedBlurIds.has(face.id)) return;
+
+        const sx = face.box.x * scaleX;
+        const sy = face.box.y * scaleY;
+        const sw = face.box.width * scaleX;
+        const sh = face.box.height * scaleY;
+
+        outputContext.save();
+        outputContext.filter = 'blur(18px)';
+        outputContext.drawImage(outputCanvas, sx, sy, sw, sh, sx, sy, sw, sh);
+        outputContext.restore();
+      });
+
+      const downloadLink = document.createElement('a');
+      downloadLink.href = outputCanvas.toDataURL('image/png');
+      downloadLink.download = `ocula-anonymized-${Date.now()}.png`;
+      downloadLink.click();
+      return true;
+    } catch (error) {
+      console.error('Could not export anonymized image:', error);
+      this.props.onDetectFail?.('This image cannot be exported because the host blocks canvas downloads. Try uploading the file instead.');
+      return false;
+    }
+  };
+
   detectFaces = async () => {
     if (this.isProcessing || !this.modelsLoaded) return;
 
     const img = this.imageRef.current;
     const canvas = this.canvasRef.current;
     if (!img || !canvas || !this.faceapi) return;
+    if (!img.complete || img.naturalWidth === 0) return;
 
     const currentScanSessionId = this.props.scanSessionId;
+    const detectionStartedAt = performance.now();
     this.isProcessing = true;
     this.props.onDetectStart?.();
     this.props.onDetectFail?.(null);
 
     try {
-      const detections = await this.faceapi
-        .detectAllFaces(img, new this.faceapi.TinyFaceDetectorOptions())
+      if (img.decode) {
+        await img.decode().catch(() => {});
+      }
+
+      const detectWithOptions = (input, inputSize, scoreThreshold) => this.faceapi
+        .detectAllFaces(input, new this.faceapi.TinyFaceDetectorOptions({ inputSize, scoreThreshold }))
         .withFaceExpressions()
         .withAgeAndGender();
+
+      let detectionInput = img;
+      let detections = await detectWithOptions(detectionInput, 416, 0.32);
+
+      if (detections.length === 0) {
+        // A slightly larger detector input helps with smaller faces without
+        // making every successful scan slower.
+        detections = await detectWithOptions(detectionInput, 608, 0.25);
+      }
+
+      if (detections.length === 0) {
+        const enhancedInput = this.createEnhancedImageCanvas(img);
+
+        if (enhancedInput) {
+          detectionInput = enhancedInput;
+          detections = await detectWithOptions(detectionInput, 608, 0.25);
+        }
+      }
 
       const displaySize = { width: img.clientWidth, height: img.clientHeight };
 
@@ -136,46 +334,58 @@ class FaceRecognition extends Component {
       // face-api gives results in image coordinates, so resize them for the visible canvas.
       const resizedDetections = this.faceapi.resizeResults(detections, displaySize);
 
-      const ctx = canvas.getContext('2d', { willReadFrequently: true });
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-      this.faceapi.draw.drawDetections(canvas, resizedDetections);
-
       // If a newer scan started while this one was running, ignore this stale result.
       if (currentScanSessionId !== this.props.scanSessionId) {
         return;
       }
 
       if (detections.length === 0) {
+        this.latestFaceBoxes = [];
         this.setState({ faceSummaries: [], faceBoxes: [] });
+        this.drawFaceOverlay();
+        this.props.onFaceBoxesUpdate?.([]);
+        this.props.onAnalysisUpdate?.({ faceSummaries: [], processingTimeMs: Math.round(performance.now() - detectionStartedAt) });
         this.props.onDetectFail?.('No faces detected');
       } else {
-        this.setState({
-          faceBoxes: resizedDetections.map((detection, index) => ({
-            id: index + 1,
-            box: detection.detection.box
-          })),
-          faceSummaries: detections.map((detection, index) => {
-            const [expression, confidence] = this.getTopExpression(detection.expressions);
+        const faceSummaries = detections.map((detection, index) => {
+          const [expression, confidence] = this.getTopExpression(detection.expressions);
 
-            return {
-              id: index + 1,
-              age: Math.round(detection.age),
-              gender: detection.gender || 'unknown',
-              genderConfidence: Math.round((detection.genderProbability || 0) * 100),
-              expression,
-              expressionConfidence: Math.round(confidence * 100)
-            };
-          })
+          return {
+            id: index + 1,
+            age: Math.round(detection.age),
+            gender: detection.gender || 'unknown',
+            genderConfidence: Math.round((detection.genderProbability || 0) * 100),
+            expression,
+            expressionConfidence: Math.round(confidence * 100)
+          };
         });
-        this.props.onDetectSuccess?.();
+
+        const faceBoxes = resizedDetections.map((detection, index) => ({
+          id: index + 1,
+          box: detection.detection.box
+        }));
+
+        this.latestFaceBoxes = faceBoxes;
+        this.setState({
+          faceBoxes,
+          faceSummaries
+        }, this.drawFaceOverlay);
+        this.props.onFaceBoxesUpdate?.(faceBoxes);
+        this.props.onAnalysisUpdate?.({ faceSummaries, processingTimeMs: Math.round(performance.now() - detectionStartedAt) });
+        if (!this.hasReportedSuccessForSession) {
+          this.hasReportedSuccessForSession = true;
+          this.props.onDetectSuccess?.();
+        }
       }
     } catch (error) {
       if (currentScanSessionId !== this.props.scanSessionId) {
         return;
       }
       console.error('Face detection error:', error);
+      this.latestFaceBoxes = [];
       this.setState({ faceSummaries: [], faceBoxes: [] });
+      this.props.onFaceBoxesUpdate?.([]);
+      this.props.onAnalysisUpdate?.({ faceSummaries: [], processingTimeMs: 0 });
       this.props.onDetectFail?.('Could not process image. Try another URL.');
     } finally {
       this.isProcessing = false;
@@ -183,8 +393,20 @@ class FaceRecognition extends Component {
   };
 
   handleImageError = () => {
+    const { imageUrl } = this.props;
+
+    if (!this.state.usingProxy && isApiConfigured && /^https?:\/\//i.test(imageUrl)) {
+      this.setState({
+        displayImageUrl: `${API_URL}/image-proxy?url=${encodeURIComponent(imageUrl)}`,
+        usingProxy: true
+      });
+      return;
+    }
+
     this.isProcessing = false;
+    this.latestFaceBoxes = [];
     this.setState({ faceSummaries: [], faceBoxes: [] });
+    this.props.onFaceBoxesUpdate?.([]);
     this.props.onDetectFail?.('This image host blocked access. Try another direct image URL.');
   };
 
@@ -195,39 +417,29 @@ class FaceRecognition extends Component {
   };
 
   render() {
-    const { imageUrl, isDetecting } = this.props;
-    const { faceSummaries, faceBoxes } = this.state;
+    const { imageUrl, isDetecting, showAnalysisPanel = true } = this.props;
+    const { faceSummaries, displayImageUrl } = this.state;
 
     return (
       <div className="center ma face-recognition-container">
         {imageUrl && (
           <>
             <div className="face-recognition-frame">
-              <img
-                ref={this.imageRef}
-                src={imageUrl}
-                alt="Input for face detection"
-                crossOrigin="anonymous"
-                onLoad={this.handleImageLoad}
-                onError={this.handleImageError}
-                className="face-image"
-              />
-              <canvas
-                ref={this.canvasRef}
-                className="face-overlay"
-              />
-              {faceBoxes.map((face) => (
-                <div
-                  key={face.id}
-                  className="face-number-badge"
-                  style={{
-                    left: `${Math.max(face.box.x + face.box.width - 28, 0)}px`,
-                    top: `${Math.max(face.box.y - 14, 0)}px`
-                  }}
-                >
-                  {face.id}
-                </div>
-              ))}
+              <div className="face-image-stage">
+                <img
+                  ref={this.imageRef}
+                  src={displayImageUrl || imageUrl}
+                  alt="Input for face detection"
+                  crossOrigin="anonymous"
+                  onLoad={this.handleImageLoad}
+                  onError={this.handleImageError}
+                  className="face-image"
+                />
+                <canvas
+                  ref={this.canvasRef}
+                  className="face-overlay"
+                />
+              </div>
               {isDetecting && (
                 <div className="face-loader-overlay">
                   <div className="face-loader"></div>
@@ -235,7 +447,7 @@ class FaceRecognition extends Component {
               )}
             </div>
 
-            {faceSummaries.length > 0 && (
+            {showAnalysisPanel && faceSummaries.length > 0 && (
               <section className="face-analysis-panel">
                 <h3 className="face-analysis-title">AI face summary</h3>
                 <p className="face-analysis-note">The numbers on the image match the cards below.</p>

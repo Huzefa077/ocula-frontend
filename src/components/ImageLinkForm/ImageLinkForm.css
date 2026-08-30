@@ -1,30 +1,12 @@
 /* This file styles the image URL form, validation message, and cancel button. */
 .image-link-form-wrapper {
-  transform: scale(0.9);
-  margin-top: 1rem;
+  width: 100%;
 }
 
 .image-link-form-content {
   display: flex;
   flex-direction: column;
-  align-items: center;
-}
-
-.image-link-form-greeting {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.6rem;
-  flex-wrap: wrap;
-}
-
-.image-link-form-greeting-top {
-  display: inline-flex;
-  align-items: center;
-}
-
-.image-link-form-greeting-bottom {
-  display: block;
+  align-items: stretch;
   width: 100%;
 }
 
@@ -43,18 +25,72 @@
 }
 
 .form {
-  width: 85vw;
-  /* max-width: 500px; */
-  background:
-    radial-gradient(circle farthest-side at 0% 50%,#fb1 23.5%,rgba(240,166,17,0) 0)21px 30px,
-    radial-gradient(circle farthest-side at 0% 50%,#B71 24%,rgba(240,166,17,0) 0)19px 30px,
-    linear-gradient(#fb1 14%,rgba(240,166,17,0) 0, rgba(240,166,17,0) 85%,#fb1 0)0 0,
-    linear-gradient(150deg,#fb1 24%,#B71 0,#B71 26%,rgba(240,166,17,0) 0,rgba(240,166,17,0) 74%,#B71 0,#B71 76%,#fb1 0)0 0,
-    linear-gradient(30deg,#fb1 24%,#B71 0,#B71 26%,rgba(240,166,17,0) 0,rgba(240,166,17,0) 74%,#B71 0,#B71 76%,#fb1 0)0 0,
-    linear-gradient(90deg,#B71 2%,#fb1 0,#fb1 98%,#B71 0%)0 0 #fb1;
-  background-size: 40px 60px;
-  border-radius: 10px;
+  width: 100%;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 18px;
   padding: 1rem;
+  gap: 0.75rem;
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+
+.image-input-toolbar {
+  display: grid;
+  grid-template-columns: minmax(14rem, 1fr) auto auto auto;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.image-file-input {
+  display: none;
+}
+
+.form input,
+.image-url-input {
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: rgba(10, 16, 30, 0.22);
+  color: #fffbea;
+  outline: none;
+}
+
+.image-url-input {
+  width: 100%;
+  min-height: 3rem;
+}
+
+.form input:focus,
+.image-url-input:focus {
+  border-color: #ffe46e;
+  box-shadow: 0 0 0 2px rgba(255, 228, 110, 0.45);
+}
+
+.form button,
+.image-detect-button,
+.image-upload-button,
+.image-clear-button {
+  border: none;
+  border-radius: 12px;
+  font-weight: 900;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  white-space: nowrap;
+}
+
+.image-detect-button {
+  background: #ffe46e !important;
+  color: #111827 !important;
+}
+
+.image-upload-button,
+.image-clear-button {
+  background: rgba(255, 255, 255, 0.08) !important;
+  color: #fffbea !important;
+  border: 1px solid rgba(255, 255, 255, 0.16) !important;
+}
+
+.form button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 14px 28px rgba(0, 0, 0, 0.24);
 }
 
 .image-link-form-error {
@@ -63,21 +99,64 @@
   text-align: center;
 }
 
+.image-tips-toggle {
+  width: max-content;
+  align-self: center;
+  margin-top: 0.75rem;
+  border: 1px solid rgba(0, 210, 255, 0.22);
+  border-radius: 999px;
+  background: rgba(0, 210, 255, 0.08);
+  color: #a9f3ff;
+  cursor: pointer;
+  font-weight: 800;
+}
+
+.image-tips-panel {
+  display: grid;
+  gap: 0.65rem;
+  margin-top: 0.75rem;
+  padding: 1rem;
+  border-radius: 16px;
+  background: rgba(15, 23, 42, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: rgba(255, 251, 234, 0.78);
+  text-align: left;
+}
+
+.image-tips-panel p {
+  margin: 0;
+  line-height: 1.5;
+}
+
+.image-tips-panel strong {
+  color: #ffe46e;
+}
+
 .image-link-form-cancel {
   margin-left: 0.75rem;
-  background: #822727;
-  color: #fff;
+  background: rgba(255, 255, 255, 0.12) !important;
+  color: #fffbea !important;
+  border: 1px solid rgba(255, 255, 255, 0.18) !important;
 }
 
 /* Mobile adjustments */
-@media (max-width: 515px) {
+@media (max-width: 760px) {
   .image-link-form-wrapper {
     transform: none;
   }
 
   .form {
-    width: 95vw;
+    width: 100%;
     padding: 0.7rem;
+  }
+
+  .image-input-toolbar {
+    grid-template-columns: 1fr;
+  }
+
+  .form input,
+  .form button {
+    width: 100% !important;
   }
 
   .image-link-form-greeting {

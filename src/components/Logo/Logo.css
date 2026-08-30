@@ -1,15 +1,46 @@
 /* This file styles the Ocula logo card, eyes, and responsive logo sizing. */
 .logo-wrapper {
-  position: absolute;
-  top: 2rem;
-  left: 2rem;
+  position: relative;
   z-index: 10;
+  display: inline-flex;
 }
 
 .Tilt {
   display: inline-block;
   border-radius: 15px;
   overflow: hidden;
+}
+
+.logo-wrapper-compact .logo-tilt,
+.logo-wrapper-compact .logo-card {
+  width: 5.4rem;
+  height: 5.4rem;
+}
+
+.logo-wrapper-compact .logo-brain {
+  width: 3.35rem;
+  height: 3.35rem;
+}
+
+.logo-wrapper-compact .eye {
+  width: 0.95rem;
+  height: 1.1rem;
+  border-width: 1px;
+}
+
+.logo-wrapper-compact .eye-left {
+  left: 34%;
+  top: 29%;
+}
+
+.logo-wrapper-compact .eye-right {
+  right: 29%;
+  top: 29%;
+}
+
+.logo-wrapper-compact .pupil {
+  width: 0.48rem;
+  height: 0.48rem;
 }
 
 .logo-tilt {
@@ -66,33 +97,28 @@
 
 /* Logo shrink on mobile */
 @media (max-width: 515px) {
-  .logo-wrapper {
-    top: 1rem;
-    left: 1rem;
-  }
-
-  .Tilt {
+  .logo-wrapper:not(.logo-wrapper-compact) .Tilt {
     width: 6rem !important;
     height: 6rem !important;
   }
 
-  .logo-tilt,
-  .logo-card {
+  .logo-wrapper:not(.logo-wrapper-compact) .logo-tilt,
+  .logo-wrapper:not(.logo-wrapper-compact) .logo-card {
     width: 6rem;
     height: 6rem;
   }
 
-  .logo-brain {
+  .logo-wrapper:not(.logo-wrapper-compact) .logo-brain {
     width: 3.8rem;
     height: 3.8rem;
   }
 
-  .eye {
+  .logo-wrapper:not(.logo-wrapper-compact) .eye {
     width: 1.2rem;
     height: 1.4rem;
   }
 
-  .pupil {
+  .logo-wrapper:not(.logo-wrapper-compact) .pupil {
     width: 0.8rem;
     height: 0.8rem;
   }

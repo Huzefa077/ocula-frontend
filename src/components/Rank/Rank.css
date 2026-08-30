@@ -6,9 +6,34 @@
 }
 
 .rank-card {
-  display: flex;
-  flex-direction: column;
+  min-width: 10rem;
+  display: grid;
+  gap: 0.1rem;
   align-items: center;
+  padding: 0.8rem 1rem;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #fffbea;
+  text-align: center;
+}
+
+.rank-label {
+  color: rgba(255, 251, 234, 0.68);
+  font-size: 0.78rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.rank-value {
+  color: #ffe46e;
+  font-size: 1.75rem;
+  line-height: 1;
+}
+
+.rank-value-small {
+  font-size: 1rem;
 }
 
 /* Mobile scaling */

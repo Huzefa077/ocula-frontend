@@ -4,23 +4,25 @@ import { loadSlim } from '@tsparticles/slim';
 
 const particlesOptions = {
   background: {
-    color: { value: '#2d26ad' },
-    image: 'linear-gradient(90deg, #2225ec 0%, #4bdcf0 100%)'
+    color: { value: '#07111f' },
+    image: 'linear-gradient(115deg, #050816 0%, #0b1630 48%, #123548 100%)'
   },
   fullScreen: { enable: true, zIndex: -1 },
   fpsLimit: 50,
   particles: {
     number: { value: 36 },
-    color: { value: '#f6f9fa' },
-    links: { enable: true, distance: 140, color: '#f9f9f9', opacity: 0.35 },
+    color: { value: '#94eaff' },
+    links: { enable: true, distance: 140, color: '#67e8f9', opacity: 0.22 },
     move: { enable: true, speed: 0.35 },
-    opacity: { value: 0.4 },
+    opacity: { value: 0.28 },
     size: { value: { min: 1, max: 3 } }
   },
   interactivity: {
     events: {
       onHover: { enable: true, mode: 'repulse' },
-      onClick: { enable: true, mode: 'push' }
+      // Click-push kept adding more particles during calibration clicks, which
+      // made the Vision Tracker tab increasingly laggy.
+      onClick: { enable: false }
     }
   },
   detectRetina: true

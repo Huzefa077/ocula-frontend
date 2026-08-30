@@ -1,5 +1,5 @@
-// This file renders the image URL form and controls when users can start or cancel a scan.
-import React from 'react';
+// This file renders the image URL/file toolbar and controls when users can start or cancel a scan.
+import React, { useRef, useState } from 'react';
 import './ImageLinkForm.css';
 import { isValidImageUrl } from '../../utils/validation';
 
@@ -7,46 +7,103 @@ const ImageLinkForm = ({
   onInputChange, 
   onButtonSubmit, 
   onCancelDetect,
-  name, 
-  role = 'user',
+  onFileSelect,
+  onClearInput,
   inputValue, 
   isDetecting
 }) => {
+  const fileInputRef = useRef(null);
+  const [fileError, setFileError] = useState('');
+
   // Basic client-side checks keep bad URLs from being submitted.
   const trimmedValue = inputValue.trim();
   const hasInput = Boolean(trimmedValue);
   const canSubmit = hasInput && isValidImageUrl(trimmedValue);
 
+  const readImageFile = (file) => {
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      setFileError('Please upload an image file.');
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      setFileError('');
+      onFileSelect?.(reader.result);
+    };
+    reader.onerror = () => setFileError('Could not read this file. Try another image.');
+    reader.readAsDataURL(file);
+  };
+
+  const handleFileChange = (event) => {
+    readImageFile(event.target.files?.[0]);
+    event.target.value = '';
+  };
+
+  const handleDrop = (event) => {
+    event.preventDefault();
+    if (isDetecting) return;
+    readImageFile(event.dataTransfer.files?.[0]);
+  };
+
+  const handleDragOver = (event) => {
+    event.preventDefault();
+  };
+
+  const handleUrlKeyDown = (event) => {
+    if (event.key !== 'Enter' || isDetecting || !canSubmit) return;
+
+    event.preventDefault();
+    onButtonSubmit?.();
+  };
+
   return (
     <div className="image-link-form-wrapper">
-      <div className="glow-text yellow">
-        <p className="f3 mt4 image-link-form-greeting">
-          <span className="image-link-form-greeting-top">
-            Hello {name}!
-          </span>
-          {role === 'admin' && <span className="image-link-form-admin-badge">Admin</span>}
-          <span className="image-link-form-greeting-bottom">
-            Paste an image URL to detect faces.
-          </span>
-        </p>
-      </div>
-
       <div className="image-link-form-content">
-        <div className="form center pa4 br3 shadow-3">
+        <div className="form image-input-toolbar" onDrop={handleDrop} onDragOver={handleDragOver}>
           <input
-            className="f4 pa3 w-70 center"
+            className="image-url-input"
             type="text"
             value={inputValue}
             onChange={onInputChange}
-            placeholder="Enter image URL"
+            onKeyDown={handleUrlKeyDown}
+            placeholder="Paste direct image URL..."
+            disabled={isDetecting}
+          />
+          <input
+            ref={fileInputRef}
+            className="image-file-input"
+            type="file"
+            accept="image/*"
+            onChange={handleFileChange}
             disabled={isDetecting}
           />
           <button
-            className="w-25 grow f4 link dib white bg-light-purple"
+            className="image-detect-button"
             onClick={onButtonSubmit}
             disabled={isDetecting || !canSubmit}
+            type="button"
           >
-            {isDetecting ? 'Detecting...' : 'Detect'}
+            {isDetecting ? 'Detecting...' : 'Detect Faces'}
+          </button>
+          {hasInput && !isDetecting && (
+            <button
+              className="image-clear-button"
+              onClick={onClearInput}
+              type="button"
+            >
+              Clear
+            </button>
+          )}
+          <button
+            className="image-upload-button"
+            onClick={() => fileInputRef.current?.click()}
+            disabled={isDetecting}
+            type="button"
+          >
+            Upload File
           </button>
           {isDetecting && (
             <button
@@ -60,9 +117,10 @@ const ImageLinkForm = ({
         </div>
         {hasInput && !canSubmit && (
           <p className="image-link-form-error">
-            Enter a valid image URL starting with http:// or https://
+            Enter an http/https image URL or a small base64 image.
           </p>
         )}
+        {fileError && <p className="image-link-form-error">{fileError}</p>}
       </div>
     </div>
   );

@@ -4,7 +4,7 @@ import Tilt from 'react-parallax-tilt';
 import Brain from './brain.png';
 import './Logo.css'; 
 
-const Logo = () => {
+const Logo = ({ compact = false }) => {
 
   useEffect(() => {
     const handleMouseMove = (e) => {
@@ -34,7 +34,7 @@ const Logo = () => {
   }, []);
 
   return (
-    <div className="logo-wrapper">
+    <div className={`logo-wrapper ${compact ? 'logo-wrapper-compact' : ''}`}>
       <Tilt
         perspective={400}
         glareEnable={true}

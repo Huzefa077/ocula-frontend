@@ -1,12 +1,204 @@
-/* This file contains the shared status and error message styles used by the auth forms. */
+/* This file contains the shared card, button, status, and error styles used by the auth forms. */
+.auth-card {
+  width: min(92vw, 28rem);
+  margin: 2rem auto;
+  border-radius: 22px;
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.08), rgba(75, 220, 240, 0.04));
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+  color: #fffbea;
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+
+.auth-main {
+  padding: 2rem;
+  text-align: left;
+}
+
+.auth-kicker {
+  margin: 0 0 0.4rem;
+  color: #ffe46e;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-size: 0.72rem;
+}
+
+.auth-title {
+  margin: 0;
+  font-size: clamp(2rem, 8vw, 3rem);
+  line-height: 0.95;
+}
+
+.auth-subtitle,
+.auth-muted {
+  color: rgba(255, 251, 234, 0.76);
+  line-height: 1.5;
+}
+
+.auth-form-stack {
+  width: 100%;
+}
+
+.auth-label {
+  display: block;
+  margin-bottom: 0.35rem;
+  font-weight: 700;
+}
+
+.auth-input {
+  width: 100%;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: rgba(10, 16, 30, 0.2);
+  color: #fffbea;
+  outline: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+}
+
+.auth-input:focus {
+  border-color: #ffe46e;
+  box-shadow: 0 0 0 2px rgba(255, 228, 110, 0.5);
+}
+
+.auth-input::placeholder {
+  color: rgba(255, 251, 234, 0.6);
+}
+
+.auth-primary-button,
+.auth-secondary-button,
+.auth-link-button {
+  width: 100%;
+  margin-top: 0.7rem;
+  cursor: pointer;
+  font-weight: 800;
+  border-radius: 10px;
+  border: none;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+}
+
+.auth-primary-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.55rem;
+  background: #ffe46e;
+  color: #111827;
+  box-shadow: 0 12px 24px rgba(255, 228, 110, 0.18);
+}
+
+.auth-primary-button:disabled,
+.auth-secondary-button:disabled,
+.auth-link-button:disabled {
+  cursor: wait;
+  opacity: 0.72;
+  transform: none;
+}
+
+.auth-primary-button:disabled:hover,
+.auth-secondary-button:disabled:hover {
+  transform: none;
+  box-shadow: 0 12px 24px rgba(255, 228, 110, 0.18);
+}
+
+.auth-button-spinner {
+  width: 1rem;
+  height: 1rem;
+  border: 2px solid rgba(17, 24, 39, 0.25);
+  border-top-color: #111827;
+  border-radius: 999px;
+  animation: authSpinner 0.75s linear infinite;
+}
+
+@keyframes authSpinner {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.auth-primary-button:hover,
+.auth-secondary-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 16px 34px rgba(0, 0, 0, 0.28), 0 0 24px rgba(255, 228, 110, 0.16);
+}
+
+.auth-primary-button:active,
+.auth-secondary-button:active {
+  transform: translateY(0);
+}
+
+.auth-secondary-button {
+  background: rgba(255, 255, 255, 0.14);
+  color: #fffbea;
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.auth-link-button {
+  border: none;
+  background: transparent;
+  color: #ffe46e;
+  text-decoration: underline;
+}
+
+.auth-divider {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  margin: 1rem 0;
+  color: rgba(255, 251, 234, 0.72);
+  font-size: 0.9rem;
+}
+
+.auth-divider::before,
+.auth-divider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.22);
+}
+
+.google-signin-area {
+  display: flex;
+  justify-content: center;
+  min-height: 44px;
+}
+
+.auth-links {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.auth-link {
+  color: #fffbea;
+  cursor: pointer;
+  font-weight: 700;
+  text-decoration: underline;
+}
+
 .form-message {
   margin: 0.75rem 0;
+  line-height: 1.45;
 }
 
 .form-message-error {
-  color: red;
+  color: #ffb4a9;
 }
 
 .form-message-status {
-  color: #f7d774;
+  color: #baf7d0;
+}
+
+@media (max-width: 520px) {
+  .auth-main {
+    padding: 1.4rem;
+  }
+
+  .auth-links {
+    flex-direction: column;
+    gap: 0.2rem;
+  }
 }

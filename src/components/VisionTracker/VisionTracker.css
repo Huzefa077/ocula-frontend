@@ -1,0 +1,497 @@
+#webgazerVideoFeed,
+#webgazerFaceOverlay,
+#webgazerFaceFeedbackBox,
+#webgazerVideoContainer {
+  display: none !important;
+  opacity: 0 !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+
+.vision-mobile-tip {
+  display: none;
+}
+
+.vision-tracker-inline {
+  display: flex;
+  min-height: 520px;
+  align-items: center;
+  justify-content: center;
+  padding: clamp(1.5rem, 4vw, 3rem);
+}
+
+.vision-tracker-inline .visage-consent-panel {
+  width: min(100%, 38rem);
+}
+
+.visage-calibration-screen {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  width: 100vw;
+  height: 100vh;
+  height: 100dvh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  user-select: none;
+  background: #05070b;
+  color: #fff;
+}
+
+.visage-calibration-screen::after {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background: rgba(0, 0, 0, 0);
+  content: "";
+  pointer-events: none;
+  transition: background 1s ease;
+}
+
+.visage-calibration-screen.visage-dark-calibration::after {
+  background: rgba(0, 0, 0, 0.54);
+}
+
+.visage-background-video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0.18;
+  filter: grayscale(1);
+  transform: scaleX(-1);
+}
+
+.visage-face-lock-video {
+  opacity: 0.72;
+  object-fit: cover;
+  filter: grayscale(0.25);
+}
+
+.visage-head-guide {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: min(580px, 66vw);
+  aspect-ratio: 0.72 / 1;
+  height: auto;
+  border: 2px solid #10b981;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+
+.visage-head-guide-face-lock {
+  width: min(580px, 66vw);
+  border-color: rgba(255, 255, 255, 0.94);
+  border-width: 6px;
+}
+
+.visage-copy {
+  position: relative;
+  z-index: 2;
+  width: min(92vw, 48rem);
+  text-align: center;
+  pointer-events: none;
+}
+
+.visage-face-lock-copy {
+  position: absolute;
+  right: clamp(1rem, 2.6vw, 3rem);
+  top: 50%;
+  width: clamp(15rem, 21vw, 20rem);
+  transform: translateY(-50%);
+}
+
+.visage-consent-panel {
+  max-width: 42rem;
+  margin: 0 auto;
+  display: grid;
+  justify-items: center;
+  gap: 1rem;
+  padding: clamp(1.6rem, 4vw, 2.4rem);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 28px;
+  background:
+    radial-gradient(circle at 50% 0%, rgba(56, 189, 248, 0.12), transparent 38%),
+    rgba(15, 23, 42, 0.78);
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.35);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  pointer-events: auto;
+}
+
+.visage-consent-eyebrow {
+  margin: 0 !important;
+  color: #38bdf8 !important;
+  font-size: 0.76rem !important;
+  font-weight: 800;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.visage-consent-button {
+  margin-top: 0.35rem;
+}
+
+.visage-consent-button:disabled,
+.visage-start-calibration-button:disabled {
+  cursor: wait;
+  opacity: 0.64;
+}
+
+.visage-face-lock-message {
+  display: block;
+  padding: 0;
+  border-radius: 14px;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.82) !important;
+  font-size: clamp(1rem, 1.35vw, 1.28rem) !important;
+  font-weight: 800;
+  line-height: 1.28;
+  letter-spacing: -0.02em;
+  text-align: left;
+}
+
+.visage-face-lock-panel {
+  min-height: 23rem;
+  padding: 1.15rem;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 22px;
+  background: rgba(5, 7, 11, 0.56);
+  box-shadow: 0 20px 56px rgba(0, 0, 0, 0.28);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  pointer-events: auto;
+}
+
+.visage-calibration-rules {
+  max-width: none;
+  margin: 1rem auto 0 !important;
+  padding: 0;
+  border-radius: 0;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.58) !important;
+  font-size: clamp(0.76rem, 1vw, 0.86rem) !important;
+  text-align: left;
+  list-style-position: outside;
+  padding-left: 1.05rem;
+}
+
+.visage-calibration-rules li {
+  margin-bottom: 0.48rem;
+  line-height: 1.35;
+}
+
+.visage-calibration-rules span {
+  color: #38bdf8 !important;
+  font-weight: 900;
+}
+
+.visage-accuracy-note {
+  max-width: none;
+  margin-top: 0.55rem !important;
+  color: rgba(255, 255, 255, 0.42) !important;
+  font-size: clamp(0.7rem, 0.9vw, 0.78rem) !important;
+}
+
+.visage-start-calibration-button {
+  display: block;
+  margin: 1.2rem auto 0;
+  border: 1px solid rgba(16, 185, 129, 0.42);
+  border-radius: 999px;
+  background: rgba(16, 185, 129, 0.18);
+  color: #d1fae5;
+  cursor: pointer;
+  font-weight: 800;
+  padding: 0.7rem 1.1rem;
+  pointer-events: auto;
+}
+
+.visage-copy h1 {
+  margin: 0 0 0.7rem;
+  font-family: Inter, "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
+  font-size: clamp(1.65rem, 4vw, 2.7rem);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  opacity: 0.62;
+}
+
+.visage-consent-panel h1 {
+  margin: 0;
+  max-width: 34rem;
+  color: #fff;
+  font-size: clamp(2rem, 4vw, 2.8rem);
+  opacity: 1;
+}
+
+.visage-consent-panel > p:not(.visage-consent-eyebrow) {
+  max-width: 34rem;
+  color: rgba(255, 255, 255, 0.78);
+  font-size: clamp(0.95rem, 1.6vw, 1.08rem);
+  line-height: 1.55;
+}
+
+.visage-copy p {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.52);
+  font-size: clamp(0.9rem, 1.55vw, 1.08rem);
+  line-height: 1.5;
+}
+
+.visage-copy p span {
+  color: #10b981;
+  font-weight: 800;
+}
+
+.visage-copy small,
+.visage-loading,
+.visage-error {
+  display: block;
+  margin-top: 0.9rem;
+}
+
+.visage-copy small {
+  color: rgba(255, 255, 255, 0.34);
+  font-size: 0.78rem;
+}
+
+.visage-copy small span {
+  color: #10b981;
+}
+
+.visage-loading {
+  color: #0ea5e9;
+}
+
+.visage-error {
+  color: #fca5a5;
+}
+
+.visage-permission-note {
+  margin-top: 0.15rem !important;
+  padding: 0.55rem 0.8rem;
+  border: 1px solid rgba(148, 163, 184, 0.18);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.05);
+  color: rgba(255, 255, 255, 0.68) !important;
+  font-size: 0.8rem !important;
+  line-height: 1.35;
+}
+
+.visage-calibration-counter {
+  display: inline-block;
+  margin-bottom: 0.65rem;
+  padding: 0.35rem 0.8rem;
+  border: 1px solid rgba(14, 165, 233, 0.42);
+  border-radius: 999px;
+  background: rgba(14, 165, 233, 0.12);
+  color: #7dd3fc;
+  font-size: 0.8rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.visage-corner-counter {
+  position: fixed;
+  left: 1rem;
+  top: 1rem;
+  z-index: 10;
+  margin: 0;
+  pointer-events: none;
+}
+
+.visage-input-choice-hint {
+  position: fixed;
+  left: 50%;
+  top: 1.05rem;
+  z-index: 10;
+  display: flex;
+  min-width: 13rem;
+  flex-direction: column;
+  gap: 0.1rem;
+  padding: 0.5rem 0.9rem;
+  border: 1px solid rgba(14, 165, 233, 0.3);
+  border-radius: 16px;
+  background: rgba(5, 7, 11, 0.46);
+  color: rgba(255, 255, 255, 0.68);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  line-height: 1.15;
+  pointer-events: none;
+  transform: translateX(-50%);
+}
+
+.visage-input-choice-hint em {
+  color: rgba(255, 255, 255, 0.42);
+  font-size: 0.66rem;
+  font-style: normal;
+  text-transform: uppercase;
+}
+
+.visage-input-choice-hint b {
+  color: #38bdf8;
+}
+
+.visage-training-dot {
+  appearance: none;
+  -webkit-appearance: none;
+  position: absolute;
+  z-index: 5;
+  width: 2.6rem;
+  height: 2.6rem;
+  padding: 0 !important;
+  border: none !important;
+  border-radius: 999px;
+  background: transparent !important;
+  box-shadow: none !important;
+  cursor: pointer;
+  transform: translate(-50%, -50%);
+}
+
+.visage-training-dot:disabled {
+  border: none !important;
+  outline: none !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  cursor: wait;
+  opacity: 1;
+}
+
+.visage-training-dot:focus,
+.visage-training-dot:focus-visible,
+.visage-training-dot-cooling {
+  border: none !important;
+  outline: none !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.visage-training-dot::after {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 1rem;
+  height: 1rem;
+  border-radius: 999px;
+  background: #0ea5e9;
+  content: "";
+  transform: translate(-50%, -50%);
+}
+
+.visage-training-dot-cooling::after {
+  background: #0ea5e9;
+  opacity: 0.35;
+}
+
+.visage-gaze-dot {
+  position: absolute;
+  left: 0;
+  top: 0;
+  z-index: 50;
+  width: 1rem;
+  height: 1rem;
+  margin: -0.5rem 0 0 -0.5rem;
+  border-radius: 999px;
+  background: #10b981;
+  pointer-events: none;
+}
+
+.visage-more-inputs-hint {
+  position: fixed;
+  left: 50%;
+  bottom: 2rem;
+  z-index: 10;
+  display: inline-block;
+  margin-top: 0;
+  padding: 0.45rem 0.9rem;
+  border: 1px solid rgba(16, 185, 129, 0.42);
+  border-radius: 999px;
+  background: rgba(16, 185, 129, 0.12);
+  color: #a7f3d0;
+  font-size: 0.8rem;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  animation: visageHintGlow 1s ease-out 1;
+  transform: translateX(-50%);
+}
+
+@keyframes visageHintGlow {
+  0% {
+    box-shadow: 0 0 0 rgba(16, 185, 129, 0);
+    opacity: 0;
+  }
+
+  35% {
+    box-shadow: 0 0 26px rgba(16, 185, 129, 0.72);
+    opacity: 1;
+  }
+
+  100% {
+    box-shadow: 0 0 0 rgba(16, 185, 129, 0);
+    opacity: 0.85;
+  }
+}
+
+.visage-exit-button {
+  position: fixed;
+  right: 1rem;
+  top: 1rem;
+  z-index: 10;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.86);
+  cursor: pointer;
+  font-weight: 700;
+  padding: 0.55rem 0.9rem;
+}
+
+.visage-exit-button:hover {
+  background: rgba(255, 255, 255, 0.14);
+}
+
+@media (max-width: 760px) {
+  .vision-desktop-tip {
+    display: none;
+  }
+
+  .vision-mobile-tip {
+    display: list-item;
+  }
+
+  .visage-input-choice-hint .vision-mobile-tip {
+    display: block;
+  }
+
+  .visage-head-guide {
+    width: min(82vw, 28rem);
+  }
+
+  .visage-head-guide-face-lock {
+    width: min(88vw, 34rem);
+  }
+
+  .visage-face-lock-video {
+    object-fit: contain;
+    background: #05070b;
+  }
+
+  .visage-face-lock-copy {
+    left: 50%;
+    right: auto;
+    top: auto;
+    bottom: 1.5rem;
+    width: min(92vw, 24rem);
+    transform: translateX(-50%);
+  }
+
+  .visage-face-lock-panel {
+    min-height: auto;
+  }
+}

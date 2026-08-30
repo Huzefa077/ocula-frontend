@@ -1,0 +1,72 @@
+.brand-logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.02em;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: #eafbff;
+  cursor: pointer;
+  font-family: "Orbitron", Inter, ui-sans-serif, system-ui, sans-serif;
+  /* Logo scale update: reduced brand font-size by about 40% from clamp(1.85rem, 3.4vw, 3rem). */
+  font-size: clamp(1.1rem, 2vw, 1.8rem);
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  line-height: 1;
+  text-transform: uppercase;
+  text-shadow: 0 0 12px rgba(0, 210, 255, 0.4);
+}
+
+.brand-logo-eye-shell {
+  position: relative;
+  /* Logo eye update: enlarged only the "O" eye by 50%; the "CULA" text size stays unchanged. */
+  width: 1.68em;
+  height: 1.05em;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 0.08em;
+  filter: drop-shadow(0 0 0.42em rgba(0, 210, 255, 0.4));
+}
+
+.brand-logo-eye-contour {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  fill: rgba(7, 17, 31, 0.44);
+  stroke: rgba(234, 251, 255, 0.9);
+  stroke-width: 6;
+  stroke-linejoin: round;
+}
+
+.brand-logo-iris {
+  position: relative;
+  width: 0.48em;
+  height: 0.48em;
+  border-radius: 999px;
+  background: radial-gradient(circle, #eafbff 0 18%, #00d2ff 20% 55%, #0f5dff 70%);
+  box-shadow: 0 0 0.42em rgba(0, 210, 255, 0.78), inset 0 0 0.18em rgba(234, 251, 255, 0.8);
+  transition: transform 0.08s ease-out;
+}
+
+.brand-logo-pupil {
+  position: absolute;
+  inset: 33%;
+  border-radius: 999px;
+  background: #020617;
+}
+
+.brand-logo-text {
+  display: inline-block;
+}
+
+.brand-logo:hover .brand-logo-eye-shell {
+  filter: drop-shadow(0 0 0.58em rgba(0, 210, 255, 0.62));
+}
+
+@media (max-width: 760px) {
+  .brand-logo {
+    font-size: 1.45rem;
+  }
+}

@@ -1,6 +1,6 @@
 # Ocula Frontend
 
-React frontend for **Ocula**, a full-stack face analysis app where users can sign in, submit an image URL, detect faces, and view simple face details such as estimated age, gender, and expression.
+React frontend for **Ocula**, a browser-based face analysis and privacy tool. Users can sign in, upload a photo (or paste a direct image URL), detect every face in the frame, and review per-face estimates for age, gender, and emotion. Detected faces can be selectively blurred and exported as an anonymized image. The app also includes an experimental webcam-based gaze tracker that runs entirely client-side.
 
 This frontend was built as a learning-focused React project with real app concerns: API configuration, authentication state, protected backend calls, loading states, face detection models, and deployment on Vercel.
 
@@ -14,12 +14,20 @@ This frontend was built as a learning-focused React project with real app concer
 
 ## What This Frontend Handles
 
+## What This Frontend Handles
+
 - User registration and sign in
+- Email verification, password reset, and Google sign-in screens
+- Guest demo mode for trying face analysis without an account
 - JWT token storage in browser local storage
 - Authenticated requests to the backend API
-- Image URL submission
+- Image URL submission and local image upload via drag-and-drop or file picker
 - Face detection using local `face-api.js` models
-- Face detail display for detected faces
+- Face detail display for detected faces (age, gender, emotion)
+- Selective per-face blurring with anonymized image export
+- Session scan history
+- Experimental webcam gaze tracker with calibration flow
+- In-app user guide (Guidelines page)
 - Scan count updates for signed-in users
 - Backend availability checks and retry messages
 - Admin-only user management panel
@@ -62,12 +70,14 @@ Create a `.env` file locally:
 
 ```env
 REACT_APP_API_URL=http://localhost:3001
+REACT_APP_GOOGLE_CLIENT_ID=your_google_web_client_id.apps.googleusercontent.com
 ```
 
 For production on Vercel:
 
 ```env
 REACT_APP_API_URL=https://ocula-server.onrender.com
+REACT_APP_GOOGLE_CLIENT_ID=your_google_web_client_id.apps.googleusercontent.com
 ```
 
 Create React App only exposes frontend variables that start with `REACT_APP_`, so the prefix is required.
@@ -117,6 +127,7 @@ Vercel setup:
 - Build Command: `npm run build`
 - Output Directory: `build`
 - Environment Variable: `REACT_APP_API_URL`
+- Environment Variable: `REACT_APP_GOOGLE_CLIENT_ID`
 
 The backend is deployed separately on Render. The frontend calls the backend URL from `REACT_APP_API_URL`.
 

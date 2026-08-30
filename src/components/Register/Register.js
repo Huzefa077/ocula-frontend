@@ -1,9 +1,10 @@
-// This file renders the registration form and handles the frontend side of creating a new account.
+// This file renders the registration form and starts email verification.
 import React, { useState } from 'react';
 import axios from 'axios';
 import { API_URL, isApiConfigured } from '../../config';
 import { storeAuthToken } from '../../utils/auth';
 import { isValidEmail } from '../../utils/validation';
+import GoogleSignInButton from '../SignInForm/GoogleSignInButton';
 import '../SignInForm/AuthForm.css';
 
 const Register = ({ onRouteChange, loadUser }) => {
@@ -12,26 +13,35 @@ const Register = ({ onRouteChange, loadUser }) => {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [statusMessage, setStatusMessage] = useState('');
-  const [isLoading, setIsLoading] = useState(false);   // ← NEW
+  const [isLoading, setIsLoading] = useState(false);
 
-  // Handles the full register flow for the form.
+  const completeGoogleRegister = (data) => {
+    storeAuthToken(data.token);
+    loadUser(data.user);
+    onRouteChange('home');
+  };
+
   const handleRegister = async () => {
     if (!name.trim() || !email.trim() || !password.trim()) {
       setError('* All fields are required');
       return;
     }
+
     if (name.trim().length < 2) {
       setError('Name must be at least 2 characters');
       return;
     }
+
     if (!isValidEmail(email.trim())) {
       setError('Enter a valid email address');
       return;
     }
+
     if (password.trim().length < 6) {
       setError('Password must be at least 6 characters');
       return;
     }
+
     if (!isApiConfigured) {
       setError('App configuration is missing the backend API URL.');
       return;
@@ -39,87 +49,92 @@ const Register = ({ onRouteChange, loadUser }) => {
 
     setError('');
     setStatusMessage('');
-    setIsLoading(true);                         // ← start loading
-    // Render can be slow on first request, so show a gentle status message.
+    setIsLoading(true);
+
     const slowServerTimer = setTimeout(() => {
       setStatusMessage('Server is taking longer than usual. It may be waking up, please wait...');
     }, 4000);
 
     try {
-      // Old fetch version for comparison:
-      // const response = await fetch(`${API_URL}/register`, {
-        //   method: 'post',
-        //   headers: { 'Content-Type': 'application/json' },
-        //   body: JSON.stringify({
-          //     name: name.trim(),
-          //     email: email.trim(),
-          //     password: password.trim()
-          //   })
-          // });
-          // const data = await response.json();
-      
-      // Axios gives the parsed backend JSON directly in response.data.
       const response = await axios.post(`${API_URL}/register`, {
         name: name.trim(),
         email: email.trim(),
         password: password.trim()
       });
 
-      const data = response.data;
-
-      if (data.error) {
-        setError(data.error);
-      } else if (data.user?.id && data.token) {
-        storeAuthToken(data.token);
-        loadUser(data.user);
-        onRouteChange('home');
-      } else {
-        setError('Registration failed. Try again.');
-      }
+      setStatusMessage(response.data.message || 'Account created. Please verify your email.');
     } catch (err) {
-      console.error('Register error:', err);
       setError(err.response?.data || 'Backend server is unavailable. Try again later.');
     } finally {
       clearTimeout(slowServerTimer);
-      setIsLoading(false);                      // ← stop loading
+      setIsLoading(false);
+    }
+  };
+
+  const handleGoogleCredential = async (credential) => {
+    if (!isApiConfigured) {
+      setError('App configuration is missing the backend API URL.');
+      return;
+    }
+
+    setError('');
+    setStatusMessage('Creating account with Google...');
+    setIsLoading(true);
+
+    try {
+      // The backend verifies Google's ID token, then creates or finds the user.
+      const response = await axios.post(`${API_URL}/auth/google`, { credential });
+      completeGoogleRegister(response.data);
+    } catch (err) {
+      setError(err.response?.data || 'Google registration failed.');
+    } finally {
+      setStatusMessage('');
+      setIsLoading(false);
     }
   };
 
   return (
-    <article className="br3 ba dark-gray b--black-10 mv4 w-100 w-50-m w-25-l mw6 shadow-5 center">
-      <main className="pa4 black-80">
-        <div className="measure">
+    <article className="auth-card">
+      <main className="auth-main">
+        <p className="auth-kicker">Create your Ocula account</p>
+        <h1 className="auth-title">Register</h1>
+        <p className="auth-subtitle">After registering, verify your email before signing in.</p>
+
+        <div className="measure auth-form-stack">
           <fieldset id="sign_up" className="ba b--transparent ph0 mh0">
-            <legend className="f1 fw6 ph0 mh0">Register</legend>
+            <legend className="clip">Register</legend>
 
             {error && <p className="form-message form-message-error">{error}</p>}
             {!error && statusMessage && <p className="form-message form-message-status">{statusMessage}</p>}
 
             <div className="mt3">
               <label className="db fw6 lh-copy f6">Name</label>
-              <input className="pa2 input-reset ba bg-transparent w-100" type="text" value={name} onChange={(e) => setName(e.target.value)} />
+              <input className="auth-input" type="text" value={name} onChange={(e) => setName(e.target.value)} disabled={isLoading} />
             </div>
 
             <div className="mt3">
               <label className="db fw6 lh-copy f6">Email</label>
-              <input className="pa2 input-reset ba bg-transparent w-100" type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
+              <input className="auth-input" type="email" value={email} onChange={(e) => setEmail(e.target.value)} disabled={isLoading} />
             </div>
 
             <div className="mv3">
               <label className="db fw6 lh-copy f6">Password</label>
-              <input className="b pa2 input-reset ba bg-transparent w-100" type="password" value={password} onChange={(e) => setPassword(e.target.value)} />
+              <input className="auth-input" type="password" value={password} onChange={(e) => setPassword(e.target.value)} disabled={isLoading} />
             </div>
           </fieldset>
 
-          <div>
-            <input
-              className="b ph3 pv2 input-reset ba b--black bg-transparent grow pointer f6"
-              type="submit"
-              value={isLoading ? "Registering..." : "Register"}   // ← changes text
-              onClick={handleRegister}
-              disabled={isLoading}                               // ← prevents multiple clicks
-            />
-          </div>
+          <button className="auth-primary-button" type="button" onClick={handleRegister} disabled={isLoading} aria-busy={isLoading}>
+            {isLoading && <span className="auth-button-spinner" aria-hidden="true"></span>}
+            {isLoading ? 'Registering...' : 'Register'}
+          </button>
+
+          <div className="auth-divider">or</div>
+
+          <GoogleSignInButton onCredential={handleGoogleCredential} disabled={isLoading} />
+
+          <button className="auth-link-button" onClick={() => onRouteChange('signin')} type="button">
+            Back to sign in
+          </button>
         </div>
       </main>
     </article>
