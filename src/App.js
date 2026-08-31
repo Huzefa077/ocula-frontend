@@ -482,6 +482,7 @@ class App extends Component {
       this.setState((prevState) => ({
         route: prevState.isSignedIn || prevState.isGuest ? 'home' : 'signin',
         previousRoute: prevState.route,
+        activeDashboardTab: 'photo',
         isSignedIn: prevState.isSignedIn,
         isGuest: prevState.isGuest
       }));
@@ -552,6 +553,39 @@ class App extends Component {
     this.handleGuestMode(activeDashboardTab);
   };
 
+  renderHeroPreview = (extraClassName = '') => (
+    <button
+      className={`hero-preview-card hero-preview-card-button ${extraClassName}`.trim()}
+      onClick={() => this.openDashboardTool('photo')}
+      type="button"
+      aria-label="Open Photo Scan and Blur"
+    >
+      <div className="hero-preview-toolbar">
+        <span className="hero-preview-dot"></span>
+        <span className="hero-preview-dot"></span>
+        <span className="hero-preview-dot"></span>
+      </div>
+      <div className="hero-preview-image-frame">
+        <img
+          className="hero-preview-image"
+          src={`${process.env.PUBLIC_URL}/images/model.png`}
+          alt="AI face analysis preview"
+        />
+        <div className="mesh-reveal-layer">
+          <FaceMeshOverlay />
+        </div>
+        <div className="hero-preview-scan-line scanner-bar" aria-hidden="true"></div>
+      </div>
+      <span className="hero-crosshair hero-crosshair-one"></span>
+      <span className="hero-crosshair hero-crosshair-two"></span>
+      <div className="hero-floating-tag hero-floating-tag-one">Age: ~27 | Neutral 96%</div>
+      <div className="hero-floating-tag hero-floating-tag-two">Privacy Blur: Ready</div>
+      <div className="hero-preview-footer">
+        <span>Face detected: 0.42s</span>
+      </div>
+    </button>
+  );
+
   render() {
     const {
       isSignedIn,
@@ -596,7 +630,7 @@ class App extends Component {
     const maintenanceRetryAfter = maintenanceConfig.retryAfter.trim();
     const appFooter = (
       <footer className="landing-footer">
-        <span>Copyright (c) {new Date().getFullYear()} Ocula. All rights reserved.</span>
+        <span>Copyright ©{new Date().getFullYear()} Ocula. All rights reserved.</span>
         <span>
           Developed by{' '}
           <a href="https://huzaifasheikh.dev" target="_blank" rel="noreferrer">
@@ -692,10 +726,11 @@ class App extends Component {
           <main className="landing-page">
             <section className="landing-hero">
               <div className="landing-copy">
-                <p className="landing-kicker">Privacy-first browser vision</p>
-                <h1 className="landing-title">Smart Face Analysis & Privacy</h1>
+                <p className="landing-kicker">Face analysis and gaze tracking</p>
+                <h1 className="landing-title">Face Detection, Privacy Blur & Gaze Tracking</h1>
+                {this.renderHeroPreview('hero-preview-card-mobile')}
                 <p className="landing-subtitle">
-                  Analyze faces in uploaded photos, selectively blur identities, and test an experimental gaze tracker built for browser-side demos.
+                  Analyze faces in uploaded photos, blur selected identities, and test an experimental webcam gaze tracker that runs in the browser.
                 </p>
                 {(isSignedIn || isGuest) && (
                   <div className="landing-return-message">
@@ -728,31 +763,7 @@ class App extends Component {
                   <span>Client-Side Vision Tools</span>
                 </div>
               </div>
-              <aside className="hero-preview-card" aria-label="Ocula face analysis preview">
-                <div className="hero-preview-toolbar">
-                  <span className="hero-preview-dot"></span>
-                  <span className="hero-preview-dot"></span>
-                  <span className="hero-preview-dot"></span>
-                </div>
-                <div className="hero-preview-image-frame">
-                  <img
-                    className="hero-preview-image"
-                    src={`${process.env.PUBLIC_URL}/images/model.png`}
-                    alt="AI face analysis preview"
-                  />
-                  <div className="mesh-reveal-layer">
-                    <FaceMeshOverlay />
-                  </div>
-                  <div className="hero-preview-scan-line scanner-bar" aria-hidden="true"></div>
-                </div>
-                <span className="hero-crosshair hero-crosshair-one"></span>
-                <span className="hero-crosshair hero-crosshair-two"></span>
-                <div className="hero-floating-tag hero-floating-tag-one">Age: ~27 | Neutral 96%</div>
-                <div className="hero-floating-tag hero-floating-tag-two">Privacy Blur: Ready</div>
-                <div className="hero-preview-footer">
-                  <span>Face detected: 0.42s</span>
-                </div>
-              </aside>
+              {this.renderHeroPreview('hero-preview-card-desktop')}
             </section>
 
             <section id="features" className="landing-section">
@@ -787,10 +798,11 @@ class App extends Component {
             </section>
 
             <section id="privacy" className="landing-section landing-privacy-showcase">
-              <div>
+              <article className="landing-architecture-card landing-privacy-copy-card">
                 <p className="landing-section-kicker">Privacy Engine</p>
                 <h2>Blur only the faces you choose</h2>
-                <p>Instead of blurring a whole photo, Ocula lets you pick exactly which faces to hide. That's useful for group photos, event pictures, or any image where only some people need their identity protected.</p>              </div>
+                <p>Instead of blurring a whole photo, Ocula lets you pick exactly which faces to hide. That's useful for group photos, event pictures, or any image where only some people need their identity protected.</p>
+              </article>
               <div className="privacy-preview-grid">
                 <div className="privacy-preview-card privacy-preview-before">Original scan</div>
                 <div className="privacy-preview-card privacy-preview-after">Selective blur ready</div>
@@ -1045,7 +1057,7 @@ class App extends Component {
                   <ul>
                     <li>Enter fullscreen only when you are ready; the tracker asks for webcam access and runs locally in the browser.</li>
                     <li>Move close enough to fill the face oval without cutting off your forehead or chin.</li>
-                    <li>Keep your head still, move only your eyes, and pause briefly before each click or B-key input.</li>
+                    <li>Keep your head still during calibration. On desktop, mouse clicks give better accuracy than the B key.</li>
                     <li>Remove glasses if reflections block your pupils; webcam quality, lighting, and natural eye alignment affect accuracy.</li>
                   </ul>
                 </div>

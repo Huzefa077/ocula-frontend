@@ -1,6 +1,6 @@
-# Ocula Frontend
+# Ocula Vision Lab Frontend
 
-React frontend for **Ocula**, a browser-based face analysis and privacy tool. Users can sign in, upload a photo (or paste a direct image URL), detect every face in the frame, and review per-face estimates for age, gender, and emotion. Detected faces can be selectively blurred and exported as an anonymized image. The app also includes an experimental webcam-based gaze tracker that runs entirely client-side.
+React frontend for **Ocula Vision Lab**, a browser-based demo for face analysis, selective privacy blur, and experimental gaze tracking. Users can sign in, upload a photo or paste a direct image URL, detect faces, review estimated age/gender/emotion details, blur selected identities, and export an anonymized image. The app also includes a webcam-based Vision Tracker that runs locally in the browser after user permission.
 
 This frontend was built as a learning-focused React project with real app concerns: API configuration, authentication state, protected backend calls, loading states, face detection models, and deployment on Vercel.
 
@@ -11,8 +11,6 @@ This frontend was built as a learning-focused React project with real app concer
 ## Other Links
 - Backend API: [https://ocula-server.onrender.com](https://ocula-server.onrender.com)
 - Backend Docs: [https://ocula-server.onrender.com/docs](https://ocula-server.onrender.com/docs)
-
-## What This Frontend Handles
 
 ## What This Frontend Handles
 
@@ -27,7 +25,7 @@ This frontend was built as a learning-focused React project with real app concer
 - Selective per-face blurring with anonymized image export
 - Session scan history
 - Experimental webcam gaze tracker with calibration flow
-- In-app user guide (Guidelines page)
+- In-app user guide
 - Scan count updates for signed-in users
 - Backend availability checks and retry messages
 - Admin-only user management panel
@@ -140,12 +138,14 @@ This project helped me practice:
 - Sending JWT tokens in request headers
 - Handling loading, success, and error states in the UI
 - Using local face detection models in the browser
+- Improving webcam gaze calibration with repeated samples and randomized calibration points
 - Deploying a React app with environment variables on Vercel
 
 ## Notes
 
 - Face detection runs in the browser using model files stored in `public/models`.
 - Age, gender, and expression results are estimates from the model and may not always be accurate.
+- Vision Tracker is experimental. Accuracy depends heavily on lighting, webcam quality, face position, still head posture, and careful calibration clicks.
 - The admin panel appears only when the signed-in user has an admin role from the backend token/user profile.
 
 ## Related Project

@@ -178,6 +178,11 @@ button {
   gap: 1.2rem;
 }
 
+.landing-privacy-copy-card {
+  width: 100%;
+  box-sizing: border-box;
+}
+
 .privacy-preview-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -505,6 +510,26 @@ button {
   box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.5);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
+}
+
+.hero-preview-card-button {
+  width: 100%;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: rgba(13, 19, 33, 0.8);
+  color: inherit;
+  cursor: pointer;
+  padding: 1rem;
+  text-align: left;
+  transition: transform 0.2s ease;
+}
+
+.hero-preview-card-button:hover {
+  box-shadow: 0 24px 48px -16px rgba(0, 0, 0, 0.58);
+  transform: scale(1.015);
+}
+
+.hero-preview-card-mobile {
+  display: none;
 }
 
 .hero-preview-image {
@@ -1463,6 +1488,15 @@ button {
     border-radius: 28px;
   }
 
+  .hero-preview-card-desktop {
+    display: none;
+  }
+
+  .hero-preview-card-mobile {
+    display: flex;
+    margin-top: 1.25rem;
+  }
+
   .hero-preview-image-frame {
     width: 100%;
     margin: 1.2rem auto 3.2rem;
@@ -1488,14 +1522,24 @@ button {
     margin: 0;
     padding: 0.75rem;
     border-radius: 0;
-    display: block;
+    display: flex;
+    flex-direction: column;
     overflow: visible;
   }
 
+  .dashboard-toolbar {
+    order: 2;
+  }
+
   .dashboard-rank-strip {
+    order: 4;
     grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 0.55rem;
     width: 100%;
+  }
+
+  .dashboard-grid {
+    display: contents;
   }
 
   .dashboard-history-inline-button,
@@ -1511,8 +1555,13 @@ button {
   }
 
   .dashboard-preview-panel {
+    order: 1;
     min-height: 16rem;
     height: auto;
+  }
+
+  .dashboard-telemetry-panel {
+    order: 3;
   }
 
   .guidelines-page {

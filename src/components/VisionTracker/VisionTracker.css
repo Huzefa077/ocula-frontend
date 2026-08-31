@@ -100,10 +100,11 @@
 
 .visage-face-lock-copy {
   position: absolute;
-  right: clamp(1rem, 2.6vw, 3rem);
+  left: 50%;
+  right: auto;
   top: 50%;
-  width: clamp(15rem, 21vw, 20rem);
-  transform: translateY(-50%);
+  width: min(92vw, 34rem);
+  transform: translate(-50%, -50%);
 }
 
 .visage-consent-panel {
@@ -157,15 +158,45 @@
 }
 
 .visage-face-lock-panel {
-  min-height: 23rem;
-  padding: 1.15rem;
+  padding: 1.2rem;
   border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 22px;
-  background: rgba(5, 7, 11, 0.56);
+  background: rgba(5, 7, 11, 0.72);
   box-shadow: 0 20px 56px rgba(0, 0, 0, 0.28);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   pointer-events: auto;
+}
+
+.visage-face-lock-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.visage-tips-close-button {
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.84);
+  cursor: pointer;
+  font-size: 0.78rem;
+  font-weight: 800;
+  padding: 0.45rem 0.7rem;
+  pointer-events: auto;
+}
+
+.visage-tips-close-button:hover {
+  background: rgba(255, 255, 255, 0.14);
+}
+
+.visage-face-lock-actions {
+  position: fixed;
+  left: 50%;
+  bottom: clamp(1.25rem, 4vh, 2.5rem);
+  z-index: 10;
+  transform: translateX(-50%);
 }
 
 .visage-calibration-rules {
@@ -200,10 +231,10 @@
 
 .visage-start-calibration-button {
   display: block;
-  margin: 1.2rem auto 0;
+  margin: 0 auto;
   border: 1px solid rgba(16, 185, 129, 0.42);
   border-radius: 999px;
-  background: rgba(16, 185, 129, 0.18);
+  background: rgba(16, 185, 129, 0.28);
   color: #d1fae5;
   cursor: pointer;
   font-weight: 800;
@@ -233,6 +264,36 @@
   color: rgba(255, 255, 255, 0.78);
   font-size: clamp(0.95rem, 1.6vw, 1.08rem);
   line-height: 1.55;
+}
+
+.visage-consent-points {
+  display: grid;
+  gap: 0.7rem;
+  width: min(100%, 34rem);
+  margin: 0;
+  padding: 0;
+  color: rgba(255, 255, 255, 0.76);
+  font-size: clamp(0.95rem, 1.5vw, 1.04rem);
+  line-height: 1.45;
+  list-style: none;
+  text-align: left;
+}
+
+.visage-consent-points li {
+  position: relative;
+  padding-left: 1.35rem;
+}
+
+.visage-consent-points li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0.55em;
+  width: 0.45rem;
+  height: 0.45rem;
+  border-radius: 999px;
+  background: #38bdf8;
+  box-shadow: 0 0 12px rgba(56, 189, 248, 0.45);
 }
 
 .visage-copy p {
@@ -336,6 +397,13 @@
 
 .visage-input-choice-hint b {
   color: #38bdf8;
+}
+
+.visage-input-choice-hint small {
+  margin-top: 0.15rem;
+  color: rgba(255, 255, 255, 0.52);
+  font-size: 0.68rem;
+  font-weight: 800;
 }
 
 .visage-training-dot {
@@ -478,17 +546,17 @@
   }
 
   .visage-face-lock-video {
-    object-fit: contain;
+    object-fit: cover;
     background: #05070b;
   }
 
   .visage-face-lock-copy {
     left: 50%;
     right: auto;
-    top: auto;
-    bottom: 1.5rem;
+    top: 50%;
+    bottom: auto;
     width: min(92vw, 24rem);
-    transform: translateX(-50%);
+    transform: translate(-50%, -50%);
   }
 
   .visage-face-lock-panel {

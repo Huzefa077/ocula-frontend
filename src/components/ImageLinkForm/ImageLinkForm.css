@@ -99,6 +99,10 @@
   text-align: center;
 }
 
+.image-link-form-mobile-help {
+  display: none;
+}
+
 .image-tips-toggle {
   width: max-content;
   align-self: center;
@@ -152,6 +156,15 @@
 
   .image-input-toolbar {
     grid-template-columns: 1fr;
+  }
+
+  .image-link-form-mobile-help {
+    display: block;
+    margin: 0.65rem 0 0;
+    color: rgba(255, 251, 234, 0.68);
+    font-size: 0.82rem;
+    line-height: 1.45;
+    text-align: left;
   }
 
   .form input,

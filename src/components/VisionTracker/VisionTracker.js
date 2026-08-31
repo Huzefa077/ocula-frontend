@@ -76,6 +76,7 @@ const VisionTracker = () => {
   const [isStartingTracker, setIsStartingTracker] = useState(false);
   const [isDarkeningCalibration, setIsDarkeningCalibration] = useState(false);
   const [showCalibrationInputHint, setShowCalibrationInputHint] = useState(false);
+  const [showFaceLockTips, setShowFaceLockTips] = useState(true);
   const [cooldownRemainingMs, setCooldownRemainingMs] = useState(0);
   const [error, setError] = useState('');
   const [cameraPermissionStatus, setCameraPermissionStatus] = useState('unknown');
@@ -170,7 +171,7 @@ const VisionTracker = () => {
     calibrationInputHintTimerRef.current = setTimeout(() => {
       setShowCalibrationInputHint(false);
       calibrationInputHintTimerRef.current = null;
-    }, 8000);
+    }, 3000);
   };
 
   const hasUsableWebGazerDetection = () => {
@@ -289,6 +290,7 @@ const VisionTracker = () => {
 
       await startWebGazer(handleGazeUpdate);
 
+      setShowFaceLockTips(true);
       setIsTrackerReady(true);
       setTrackerPhase(TRACKER_PHASES.FACE_LOCK);
     } catch (err) {
@@ -387,6 +389,7 @@ const VisionTracker = () => {
     setIsTrackerReady(false);
     setIsStartingTracker(false);
     setIsDarkeningCalibration(false);
+    setShowFaceLockTips(true);
     setTrainingPoints(createTrainingPoints());
     setTrainingGoal(TOTAL_TRAINING_POINTS);
     setClickCount(0);
@@ -404,6 +407,7 @@ const VisionTracker = () => {
     setTrainingPoints(createTrainingPoints());
     setTrackerPhase(TRACKER_PHASES.CALIBRATION);
     setIsDarkeningCalibration(true);
+    setShowFaceLockTips(false);
   };
 
   const activePoint = trainingPoints[Math.min(clickCount, trainingGoal - 1)];
@@ -431,9 +435,11 @@ const VisionTracker = () => {
         <div className="visage-consent-panel">
           <p className="visage-consent-eyebrow">Privacy check</p>
           <h1>Start Vision Tracker?</h1>
-          <p>
-            This opens fullscreen mode and asks for camera access. Everything runs on your own device — Ocula never uploads or stores your camera feed.
-          </p>
+          <ul className="visage-consent-points">
+            <li>Opens in fullscreen mode for accurate screen calibration.</li>
+            <li>Asks for camera access so Ocula can estimate your gaze.</li>
+            <li>Runs on your own device. Your camera feed is not uploaded or stored.</li>
+          </ul>
           <small className="visage-permission-note">
             Camera permission: {cameraPermissionStatus}
             {cameraPermissionStatus === 'granted' ? ' — your browser already allowed this, so you may not see a popup.' : ''}
@@ -461,32 +467,45 @@ const VisionTracker = () => {
         Exit
       </button>
 
+      {isFaceLockPhase && (
+        <div className="visage-face-lock-actions">
+          <button
+            className="visage-start-calibration-button"
+            onClick={startCalibrationPhase}
+            disabled={!isTrackerReady}
+            type="button"
+          >
+            {isTrackerReady ? 'Start Calibration' : 'Starting camera...'}
+          </button>
+        </div>
+      )}
+
       <div className={isFaceLockPhase ? 'visage-copy visage-face-lock-copy' : 'visage-copy'}>
         {isFaceLockPhase ? (
-          <aside className="visage-face-lock-panel">
-            <p className="visage-face-lock-message">Tips:</p>
-            <ul className="visage-calibration-rules">
-              <li>Fill the face oval without cropping your forehead or chin.</li>
-              <li>Keep your head still; move only your eyes.</li>
-              <li className="vision-desktop-tip">For best accuracy, look at each blue dot and click it with the mouse. Press <span>B</span> only if needed; it is less accurate.</li>
-              <li className="vision-mobile-tip">Look at each blue dot, then tap it once.</li>
-              <li>After each input, keep looking at the dimmed dot until the next one appears.</li>
-              <li>Use steady lighting; remove glasses if reflections block your eyes.</li>
-              <li>Accuracy also depends on webcam quality and eye/pupil visibility.</li>
-            </ul>
-            <button
-              className="visage-start-calibration-button"
-              onClick={startCalibrationPhase}
-              disabled={!isTrackerReady}
-              type="button"
-            >
-              {isTrackerReady ? 'Start Calibration' : 'Starting camera...'}
-            </button>
-          </aside>
+          showFaceLockTips ? (
+            <aside className="visage-face-lock-panel">
+              <div className="visage-face-lock-header">
+                <p className="visage-face-lock-message">Tips:</p>
+                <button className="visage-tips-close-button" onClick={() => setShowFaceLockTips(false)} type="button">
+                  Close
+                </button>
+              </div>
+              <ul className="visage-calibration-rules">
+                <li>Fill the face oval without cropping your forehead or chin.</li>
+                <li>Keep your head still during calibration. Even small head movements reduce accuracy.</li>
+                <li className="vision-desktop-tip">For best accuracy, look at each blue dot and click it with the mouse. Press <span>B</span> only if needed; it is less accurate.</li>
+                <li className="vision-mobile-tip">Look at each blue dot, then tap it once.</li>
+                <li className="vision-mobile-tip">Use a tripod or phone stand if possible so your face stays steady inside the silhouette.</li>
+                <li>After each input, keep looking at the dimmed dot until the next one appears.</li>
+                <li>Use steady lighting; remove glasses if reflections block your eyes.</li>
+                <li>Accuracy also depends on webcam quality and eye/pupil visibility.</li>
+              </ul>
+            </aside>
+          ) : null
         ) : isTrainingComplete ? (
           <>
             {isTrainingComplete && (
-              <strong className="visage-more-inputs-hint">
+              <strong className="visage-more-inputs-hint vision-desktop-tip">
                 Press SPACE for 15 more inputs to increase accuracy.
               </strong>
             )}
@@ -501,6 +520,7 @@ const VisionTracker = () => {
                 <span className="vision-desktop-tip">Look at it, then press <b>B</b></span>
                 <span className="vision-mobile-tip">Tap the blue dot</span>
                 <em className="vision-mobile-tip">then keep looking at it until it moves</em>
+                <small>Keep your head still.</small>
               </span>
             )}
           </>

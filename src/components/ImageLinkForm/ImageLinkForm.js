@@ -120,6 +120,9 @@ const ImageLinkForm = ({
             Enter an http/https image URL or a small base64 image.
           </p>
         )}
+        <p className="image-link-form-mobile-help">
+          On mobile, open the image in a new browser tab first. Then copy the URL from the address bar and paste it here.
+        </p>
         {fileError && <p className="image-link-form-error">{fileError}</p>}
       </div>
     </div>

@@ -26,6 +26,7 @@ const Navigation = ({
       </div>
     );
     const openDashboardTab = (tabName) => {
+      closeMobileMenu();
       onDashboardTabChange?.(tabName);
       onRouteChange('home');
     };
@@ -71,7 +72,6 @@ const Navigation = ({
       <div className="navigation-anchor-links">
         <a href="#features" onClick={closeMobileMenu}>Features</a>
         <a href="#privacy" onClick={closeMobileMenu}>Privacy Engine</a>
-        <a href="#gaze-tech" onClick={closeMobileMenu}>Vision Tracker</a>
         <a href="#faq" onClick={closeMobileMenu}>Architecture & FAQ</a>
       </div>
     ) : (
