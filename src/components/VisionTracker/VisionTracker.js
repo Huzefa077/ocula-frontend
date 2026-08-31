@@ -468,7 +468,7 @@ const VisionTracker = () => {
       </button>
 
       {isFaceLockPhase && (
-        <div className="visage-face-lock-actions">
+        <div className={showFaceLockTips ? 'visage-face-lock-actions' : 'visage-face-lock-actions visage-face-lock-actions-centered'}>
           <button
             className="visage-start-calibration-button"
             onClick={startCalibrationPhase}

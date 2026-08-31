@@ -44,6 +44,7 @@ const GoogleSignInButton = ({ onCredential, disabled }) => {
         google.accounts.id.renderButton(buttonRef.current, {
           theme: 'outline',
           size: 'large',
+          text: 'continue_with',
           width: 260
         });
       })

@@ -142,7 +142,7 @@ const SignInForm = ({ onRouteChange, loadUser, onGuestMode }) => {
 
           <GoogleSignInButton onCredential={handleGoogleCredential} disabled={isLoading} />
 
-          <button className="auth-secondary-button" type="button" onClick={onGuestMode} disabled={isLoading}>
+          <button className="auth-secondary-button" type="button" onClick={() => onGuestMode()} disabled={isLoading}>
             Continue as guest
           </button>
 
