@@ -1452,7 +1452,7 @@ button {
   }
 
   .landing-title {
-    font-size: clamp(1.7rem, 9vw, 2.25rem);
+    font-size: clamp(1.35rem, 7vw, 1.9rem);
     letter-spacing: 0.1em;
   }
 
