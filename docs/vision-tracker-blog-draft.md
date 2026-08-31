@@ -1,12 +1,12 @@
-# Building the Vision Tracker in Ocula Vision Lab
+# Building the Gaze Tracker in Ocula Vision Lab
 
-Ocula Vision Lab started as a browser-based face analysis project, but I also wanted to experiment with a more interactive computer vision feature: a Vision Tracker. The idea is simple from the user's point of view. The user allows camera access, aligns their face inside a guide, clicks calibration dots on the screen, and then the app estimates where they are looking.
+Ocula Vision Lab started as a browser-based face analysis project, but I also wanted to experiment with a more interactive computer vision feature: a Gaze Tracker. The idea is simple from the user's point of view. The user allows camera access, aligns their face inside a guide, clicks calibration dots on the screen, and then the app estimates where they are looking.
 
 This is not medical-grade eye tracking and it is not meant for security or identity verification. It is a learning project that demonstrates how webcam input, calibration data, and a browser machine learning library can work together inside a React app.
 
 ## What the Feature Does
 
-The Vision Tracker runs in the browser. It asks for webcam permission, opens a fullscreen calibration screen, and shows a face silhouette so the user can position their head. After that, the user clicks a sequence of blue dots. Each click tells the model, "my eyes are looking at this screen position right now."
+The Gaze Tracker runs in the browser. It asks for webcam permission, opens a fullscreen calibration screen, and shows a face silhouette so the user can position their head. After that, the user clicks a sequence of blue dots. Each click tells the model, "my eyes are looking at this screen position right now."
 
 Once enough calibration points are collected, the tracker starts showing a live gaze dot. That dot is an estimate of where the user's eyes are looking on the screen.
 
@@ -110,4 +110,4 @@ It works worse when:
 
 This feature helped me understand that machine learning features are not only about the model. The surrounding product design matters just as much. Calibration timing, clear instructions, visual feedback, and input quality all affect the final result.
 
-The Vision Tracker is still an experiment, but building it taught me how browser-based ML, React state, webcam permissions, and user calibration can work together in one feature.
+The Gaze Tracker is still an experiment, but building it taught me how browser-based ML, React state, webcam permissions, and user calibration can work together in one feature.

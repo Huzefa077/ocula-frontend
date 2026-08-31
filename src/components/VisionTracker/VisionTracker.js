@@ -295,7 +295,7 @@ const VisionTracker = () => {
       setTrackerPhase(TRACKER_PHASES.FACE_LOCK);
     } catch (err) {
       setCameraPermissionStatus('denied');
-      setError('Fullscreen and camera permission are required for Vision Tracker.');
+      setError('Fullscreen and camera permission are required for Gaze Tracker.');
       cleanup();
     } finally {
       setIsStartingTracker(false);
@@ -434,7 +434,7 @@ const VisionTracker = () => {
       <section className="vision-tracker-inline">
         <div className="visage-consent-panel">
           <p className="visage-consent-eyebrow">Privacy check</p>
-          <h1>Start Vision Tracker?</h1>
+          <h1>Start Gaze Tracker?</h1>
           <ul className="visage-consent-points">
             <li>Opens in fullscreen mode for accurate screen calibration.</li>
             <li>Asks for camera access so Ocula can estimate your gaze.</li>

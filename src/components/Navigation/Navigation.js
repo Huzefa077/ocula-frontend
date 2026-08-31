@@ -28,7 +28,6 @@ const Navigation = ({
     const openDashboardTab = (tabName) => {
       closeMobileMenu();
       onDashboardTabChange?.(tabName);
-      onRouteChange('home');
     };
     const closeUserMenu = () => {
       if (userMenuRef.current) {
@@ -65,7 +64,7 @@ const Navigation = ({
           Photo Scan & Blur
         </button>
         <button className={activeDashboardTab === 'tracker' ? 'navigation-dashboard-tab navigation-dashboard-tab-active' : 'navigation-dashboard-tab'} onClick={() => openDashboardTab('tracker')} type="button">
-          Vision Tracker
+          Gaze Tracker
         </button>
       </div>
     ) : isLanding ? (

@@ -537,7 +537,11 @@ class App extends Component {
   };
 
   handleDashboardTabChange = (activeDashboardTab) => {
-    this.setState({ activeDashboardTab });
+    this.setState((prevState) => ({
+      activeDashboardTab,
+      route: prevState.isSignedIn || prevState.isGuest ? 'home' : 'signin',
+      previousRoute: prevState.route
+    }));
   };
 
   openDashboardTool = (activeDashboardTab) => {
@@ -788,10 +792,10 @@ class App extends Component {
                 </article>
                 <article className="landing-bento-card">
                   <span>03</span>
-                  <h3>Experimental Vision Tracker</h3>
+                  <h3>Experimental Gaze Tracker</h3>
                   <p>Use your webcam to see where you're looking on screen. Click through a series of dots to calibrate it, then watch a live dot follow your gaze in real time.</p>
                   <button className="landing-card-link" onClick={() => this.openDashboardTool('tracker')} type="button">
-                    Open Vision Tracker
+                    Open Gaze Tracker
                   </button>
                 </article>
               </div>
@@ -810,7 +814,7 @@ class App extends Component {
             </section>
 
             <section id="gaze-tech" className="landing-section landing-architecture-card">
-              <p className="landing-section-kicker">Vision Tracker</p>
+              <p className="landing-section-kicker">Gaze Tracker</p>
               <h2>Browser-based gaze calibration</h2>
               <p>The tracker only starts after you allow fullscreen and camera access. You'll line up your face, then click through a series of dots so it can learn where your eyes are looking. After that, a small dot on screen follows your gaze in real time.</p>
             </section>
@@ -828,7 +832,7 @@ class App extends Component {
                   <p>Some websites block browsers from reading their images directly. If a pasted link doesn't work, try copying the direct image address instead, or just upload the photo from your device — that always works.</p>
                 </article>
                 <article className="faq-card">
-                  <h3>Is the Vision Tracker exact?</h3>
+                  <h3>Is the Gaze Tracker exact?</h3>
                   <p>No — it's an estimate, not an exact measurement. Accuracy depends on your face position, lighting, camera quality, glasses, and how precisely you click each calibration dot.</p>
                 </article>
               </div>
@@ -1034,7 +1038,7 @@ class App extends Component {
               <h1>User Guide</h1>
               <p>
                 A practical guide for getting reliable photo scans, exporting privacy-safe images,
-                and calibrating the experimental Vision Tracker without fighting the browser.
+                and calibrating the experimental Gaze Tracker without fighting the browser.
               </p>
             </section>
             <section className="guide-manual">
@@ -1053,7 +1057,7 @@ class App extends Component {
               <article className="guide-manual-section">
                 <span>02</span>
                 <div>
-                  <h2>Vision Tracker</h2>
+                  <h2>Gaze Tracker</h2>
                   <ul>
                     <li>Enter fullscreen only when you are ready; the tracker asks for webcam access and runs locally in the browser.</li>
                     <li>Move close enough to fill the face oval without cutting off your forehead or chin.</li>

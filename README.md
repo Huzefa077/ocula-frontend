@@ -1,6 +1,6 @@
 # Ocula Vision Lab Frontend
 
-React frontend for **Ocula Vision Lab**, a browser-based demo for face analysis, selective privacy blur, and experimental gaze tracking. Users can sign in, upload a photo or paste a direct image URL, detect faces, review estimated age/gender/emotion details, blur selected identities, and export an anonymized image. The app also includes a webcam-based Vision Tracker that runs locally in the browser after user permission.
+React frontend for **Ocula Vision Lab**, a browser-based demo for face analysis, selective privacy blur, and experimental gaze tracking. Users can sign in, upload a photo or paste a direct image URL, detect faces, review estimated age/gender/emotion details, blur selected identities, and export an anonymized image. The app also includes a webcam-based Gaze Tracker that runs locally in the browser after user permission.
 
 This frontend was built as a learning-focused React project with real app concerns: API configuration, authentication state, protected backend calls, loading states, face detection models, and deployment on Vercel.
 
@@ -145,7 +145,7 @@ This project helped me practice:
 
 - Face detection runs in the browser using model files stored in `public/models`.
 - Age, gender, and expression results are estimates from the model and may not always be accurate.
-- Vision Tracker is experimental. Accuracy depends heavily on lighting, webcam quality, face position, still head posture, and careful calibration clicks.
+- Gaze Tracker is experimental. Accuracy depends heavily on lighting, webcam quality, face position, still head posture, and careful calibration clicks.
 - The admin panel appears only when the signed-in user has an admin role from the backend token/user profile.
 
 ## Related Project
