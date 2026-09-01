@@ -3,14 +3,19 @@ import { createPortal } from 'react-dom';
 import { recordCalibrationPoint, startWebGazer, stopWebGazer } from '../../services/gazeTracking';
 import './VisionTracker.css';
 
-const BASELINE_TRAINING_POINTS = 36;
+const BASELINE_TRAINING_POINTS = 25;
 const EXTRA_REFINEMENT_POINTS = 15;
-const TOTAL_TRAINING_POINTS = BASELINE_TRAINING_POINTS + EXTRA_REFINEMENT_POINTS;
 const LIVE_TRACKING_START_CLICK = BASELINE_TRAINING_POINTS;
+const BASELINE_GRID_SIZE = 5;
+const BASELINE_GRID_START = 8;
+const BASELINE_GRID_STEP = 84 / (BASELINE_GRID_SIZE - 1);
 const GAZE_NOISE_DEAD_ZONE = 7;
 // how long the dot dims and holds after being clicked, before moving to the next point
 const CALIBRATION_INPUT_COOLDOWN_MS = 500;
 const CALIBRATION_SAMPLE_INTERVAL_MS = 100;
+const AUTO_SELECT_DELAY_MS = 1500;
+const AUTO_SELECT_TICK_MS = 80;
+const FIRST_DOT_DELAY_MS = 3000;
 const TRACKER_PHASES = {
   CONSENT: 'CONSENT',
   FACE_LOCK: 'FACE_LOCK',
@@ -47,11 +52,11 @@ function getNearestCenterPointIndex(points) {
 function createTrainingPoints() {
   const points = [];
 
-  for (let row = 0; row < 6; row += 1) {
-    for (let column = 0; column < 6; column += 1) {
+  for (let row = 0; row < BASELINE_GRID_SIZE; row += 1) {
+    for (let column = 0; column < BASELINE_GRID_SIZE; column += 1) {
       points.push({
-        x: 8 + column * 16.8,
-        y: 8 + row * 16.8
+        x: BASELINE_GRID_START + column * BASELINE_GRID_STEP,
+        y: BASELINE_GRID_START + row * BASELINE_GRID_STEP
       });
     }
   }
@@ -62,14 +67,13 @@ function createTrainingPoints() {
 
   return [
     centerPoint,
-    ...randomizedBaselinePoints,
-    ...createRefinementPoints(EXTRA_REFINEMENT_POINTS)
+    ...randomizedBaselinePoints
   ];
 }
 
 const VisionTracker = () => {
   const [trainingPoints, setTrainingPoints] = useState(createTrainingPoints);
-  const [trainingGoal, setTrainingGoal] = useState(TOTAL_TRAINING_POINTS);
+  const [trainingGoal, setTrainingGoal] = useState(BASELINE_TRAINING_POINTS);
   const [clickCount, setClickCount] = useState(0);
   const [trackerPhase, setTrackerPhase] = useState(TRACKER_PHASES.CONSENT);
   const [isTrackerReady, setIsTrackerReady] = useState(false);
@@ -78,8 +82,13 @@ const VisionTracker = () => {
   const [showCalibrationInputHint, setShowCalibrationInputHint] = useState(false);
   const [showFaceLockTips, setShowFaceLockTips] = useState(true);
   const [cooldownRemainingMs, setCooldownRemainingMs] = useState(0);
+  const [isAutoSelectEnabled, setIsAutoSelectEnabled] = useState(false);
+  const [autoSelectRemainingMs, setAutoSelectRemainingMs] = useState(0);
+  const [showRefinementPrompt, setShowRefinementPrompt] = useState(false);
+  const [refinementDecision, setRefinementDecision] = useState('pending');
+  const [isFirstDotDelayActive, setIsFirstDotDelayActive] = useState(false);
   const [error, setError] = useState('');
-  const [cameraPermissionStatus, setCameraPermissionStatus] = useState('unknown');
+  const [, setCameraPermissionStatus] = useState('unknown');
   const [gazePoint, setGazePoint] = useState({ x: window.innerWidth / 2, y: window.innerHeight / 2 });
 
   const videoRef = useRef(null);
@@ -96,6 +105,11 @@ const VisionTracker = () => {
   const isTrackerActiveRef = useRef(true);
   const isInputCoolingDownRef = useRef(false);
   const calibrationInputHintTimerRef = useRef(null);
+  const autoSelectTimerRef = useRef(null);
+  const autoSelectIntervalRef = useRef(null);
+  const showRefinementPromptRef = useRef(false);
+  const firstDotDelayTimerRef = useRef(null);
+  const isFirstDotDelayActiveRef = useRef(false);
 
   useEffect(() => {
     trackerPhaseRef.current = trackerPhase;
@@ -106,7 +120,9 @@ const VisionTracker = () => {
     trainingGoalRef.current = trainingGoal;
     clickCountRef.current = clickCount;
     isTrackerReadyRef.current = isTrackerReady;
-  }, [trainingPoints, trainingGoal, clickCount, isTrackerReady]);
+    showRefinementPromptRef.current = showRefinementPrompt;
+    isFirstDotDelayActiveRef.current = isFirstDotDelayActive;
+  }, [trainingPoints, trainingGoal, clickCount, isTrackerReady, showRefinementPrompt, isFirstDotDelayActive]);
 
   useEffect(() => {
     if (videoRef.current && streamRef.current) {
@@ -164,6 +180,43 @@ const VisionTracker = () => {
     setShowCalibrationInputHint(false);
   };
 
+  const clearAutoSelectTimer = () => {
+    setAutoSelectRemainingMs(0);
+
+    if (autoSelectTimerRef.current) {
+      clearTimeout(autoSelectTimerRef.current);
+      autoSelectTimerRef.current = null;
+    }
+
+    if (autoSelectIntervalRef.current) {
+      clearInterval(autoSelectIntervalRef.current);
+      autoSelectIntervalRef.current = null;
+    }
+  };
+
+  const clearFirstDotDelay = () => {
+    if (firstDotDelayTimerRef.current) {
+      clearTimeout(firstDotDelayTimerRef.current);
+      firstDotDelayTimerRef.current = null;
+    }
+
+    isFirstDotDelayActiveRef.current = false;
+    setIsFirstDotDelayActive(false);
+  };
+
+  const startFirstDotDelay = () => {
+    clearFirstDotDelay();
+
+    isFirstDotDelayActiveRef.current = true;
+    setIsFirstDotDelayActive(true);
+
+    firstDotDelayTimerRef.current = setTimeout(() => {
+      firstDotDelayTimerRef.current = null;
+      isFirstDotDelayActiveRef.current = false;
+      setIsFirstDotDelayActive(false);
+    }, FIRST_DOT_DELAY_MS);
+  };
+
   const startCalibrationInputHint = () => {
     clearCalibrationInputHint();
     setShowCalibrationInputHint(true);
@@ -171,7 +224,7 @@ const VisionTracker = () => {
     calibrationInputHintTimerRef.current = setTimeout(() => {
       setShowCalibrationInputHint(false);
       calibrationInputHintTimerRef.current = null;
-    }, 3000);
+    }, 6000);
   };
 
   const hasUsableWebGazerDetection = () => {
@@ -230,6 +283,8 @@ const VisionTracker = () => {
     isTrackerActiveRef.current = false;
     clearCalibrationInputHint();
     clearInputCooldown();
+    clearAutoSelectTimer();
+    clearFirstDotDelay();
     stopLocalStream();
     stopWebGazer();
 
@@ -241,13 +296,18 @@ const VisionTracker = () => {
   const resetCalibration = () => {
     isTrackerActiveRef.current = true;
     clearInputCooldown();
+    clearAutoSelectTimer();
+    clearFirstDotDelay();
     startCalibrationInputHint();
     window.webgazer?.clearData?.();
     setTrainingPoints(createTrainingPoints());
-    setTrainingGoal(TOTAL_TRAINING_POINTS);
+    setTrainingGoal(BASELINE_TRAINING_POINTS);
     setClickCount(0);
+    setShowRefinementPrompt(false);
+    setRefinementDecision('pending');
     setTrackerPhase(TRACKER_PHASES.CALIBRATION);
     setIsDarkeningCalibration(false);
+    startFirstDotDelay();
     smoothedPointRef.current = { x: window.innerWidth / 2, y: window.innerHeight / 2 };
     setGazePoint(smoothedPointRef.current);
   };
@@ -308,13 +368,7 @@ const VisionTracker = () => {
     const handleKeyDown = (event) => {
       if (event.code === 'Space' && trackerPhaseRef.current !== TRACKER_PHASES.CONSENT) {
         event.preventDefault();
-        if (clickCountRef.current >= trainingGoalRef.current) {
-          setTrainingPoints((points) => [...points, ...createRefinementPoints(EXTRA_REFINEMENT_POINTS)]);
-          setTrainingGoal((goal) => goal + EXTRA_REFINEMENT_POINTS);
-          setTrackerPhase(TRACKER_PHASES.CALIBRATION);
-          return;
-        }
-
+        if (showRefinementPromptRef.current) return;
         resetCalibration();
       }
 
@@ -348,6 +402,8 @@ const VisionTracker = () => {
     if (!isTrackerReadyRef.current || trackerPhaseRef.current !== TRACKER_PHASES.CALIBRATION) return;
     if (clickCountRef.current >= trainingGoalRef.current) return;
     if (isInputCoolingDownRef.current) return;
+    if (isFirstDotDelayActiveRef.current) return;
+    clearAutoSelectTimer();
 
     const pointIndex = Math.min(clickCountRef.current, trainingPointsRef.current.length - 1);
     const point = trainingPointsRef.current[pointIndex];
@@ -383,6 +439,16 @@ const VisionTracker = () => {
     recordCurrentTrainingPoint(event.currentTarget);
   };
 
+  const toggleAutoSelect = () => {
+    setIsAutoSelectEnabled((enabled) => {
+      if (enabled) {
+        clearAutoSelectTimer();
+      }
+
+      return !enabled;
+    });
+  };
+
   const handleExit = () => {
     cleanup();
     setTrackerPhase(TRACKER_PHASES.CONSENT);
@@ -391,59 +457,128 @@ const VisionTracker = () => {
     setIsDarkeningCalibration(false);
     setShowFaceLockTips(true);
     setTrainingPoints(createTrainingPoints());
-    setTrainingGoal(TOTAL_TRAINING_POINTS);
+    setTrainingGoal(BASELINE_TRAINING_POINTS);
     setClickCount(0);
     setCooldownRemainingMs(0);
+    setShowRefinementPrompt(false);
+    setRefinementDecision('pending');
+    clearFirstDotDelay();
   };
 
   const startCalibrationPhase = () => {
     if (!isTrackerReady) return;
     isTrackerActiveRef.current = true;
     clearInputCooldown();
+    clearAutoSelectTimer();
+    clearFirstDotDelay();
     startCalibrationInputHint();
     window.webgazer?.clearData?.();
     setClickCount(0);
-    setTrainingGoal(TOTAL_TRAINING_POINTS);
+    setTrainingGoal(BASELINE_TRAINING_POINTS);
     setTrainingPoints(createTrainingPoints());
     setTrackerPhase(TRACKER_PHASES.CALIBRATION);
     setIsDarkeningCalibration(true);
     setShowFaceLockTips(false);
+    setShowRefinementPrompt(false);
+    setRefinementDecision('pending');
+    startFirstDotDelay();
+  };
+
+  const startRefinementRound = () => {
+    if (trainingGoalRef.current > BASELINE_TRAINING_POINTS || refinementDecision === 'accepted') {
+      setShowRefinementPrompt(false);
+      return;
+    }
+
+    clearAutoSelectTimer();
+    clearFirstDotDelay();
+    setTrainingPoints((points) => [...points, ...createRefinementPoints(EXTRA_REFINEMENT_POINTS)]);
+    setTrainingGoal(BASELINE_TRAINING_POINTS + EXTRA_REFINEMENT_POINTS);
+    setShowRefinementPrompt(false);
+    setRefinementDecision('accepted');
+    setTrackerPhase(TRACKER_PHASES.CALIBRATION);
+    startCalibrationInputHint();
+  };
+
+  const skipRefinementRound = () => {
+    clearAutoSelectTimer();
+    setShowRefinementPrompt(false);
   };
 
   const activePoint = trainingPoints[Math.min(clickCount, trainingGoal - 1)];
-  const shouldShowTrainingDot = isTrackerReady && trackerPhase === TRACKER_PHASES.CALIBRATION && clickCount < trainingGoal;
+  const shouldShowTrainingDot =
+    isTrackerReady &&
+    trackerPhase === TRACKER_PHASES.CALIBRATION &&
+    clickCount < trainingGoal &&
+    !showRefinementPrompt &&
+    !showFaceLockTips &&
+    !isFirstDotDelayActive;
   const shouldShowGazeDot = isTrackerReady && trackerPhase === TRACKER_PHASES.CALIBRATION && clickCount >= LIVE_TRACKING_START_CLICK;
   const isFaceLockPhase = trackerPhase === TRACKER_PHASES.FACE_LOCK;
   const isConsentPhase = trackerPhase === TRACKER_PHASES.CONSENT;
-  const baselineProgress = Math.min(clickCount, BASELINE_TRAINING_POINTS);
-  const refinementProgress = Math.max(0, clickCount - BASELINE_TRAINING_POINTS);
-  const refinementGoal = trainingGoal - BASELINE_TRAINING_POINTS;
-  const calibrationCounter = clickCount < BASELINE_TRAINING_POINTS
-    ? `Calibration ${baselineProgress}/${BASELINE_TRAINING_POINTS}`
-    : `Refinement ${refinementProgress}/${refinementGoal}`;
+  const calibrationProgressCurrent = clickCount < BASELINE_TRAINING_POINTS
+    ? Math.min(clickCount, BASELINE_TRAINING_POINTS)
+    : Math.min(Math.max(0, clickCount - BASELINE_TRAINING_POINTS), EXTRA_REFINEMENT_POINTS);
+  const calibrationProgressGoal = clickCount < BASELINE_TRAINING_POINTS ? BASELINE_TRAINING_POINTS : EXTRA_REFINEMENT_POINTS;
   const isTrainingComplete = clickCount >= trainingGoal;
   const isInputCoolingDown = cooldownRemainingMs > 0;
+  const shouldShowRefinementOption =
+    trackerPhase === TRACKER_PHASES.CALIBRATION &&
+    clickCount >= BASELINE_TRAINING_POINTS;
   const shouldShowCalibrationInputHint = showCalibrationInputHint && trackerPhase === TRACKER_PHASES.CALIBRATION && !isTrainingComplete;
   const screenClassName = [
     isFaceLockPhase ? 'visage-calibration-screen visage-face-lock-screen' : 'visage-calibration-screen',
     isDarkeningCalibration ? 'visage-dark-calibration' : ''
   ].filter(Boolean).join(' ');
 
+  useEffect(() => {
+    clearAutoSelectTimer();
+
+    if (!isAutoSelectEnabled || !shouldShowTrainingDot || isInputCoolingDown || !activePoint) {
+      return undefined;
+    }
+
+    const autoSelectStartedAt = Date.now();
+    setAutoSelectRemainingMs(AUTO_SELECT_DELAY_MS);
+
+    autoSelectIntervalRef.current = setInterval(() => {
+      const remaining = Math.max(0, AUTO_SELECT_DELAY_MS - (Date.now() - autoSelectStartedAt));
+      setAutoSelectRemainingMs(remaining);
+    }, AUTO_SELECT_TICK_MS);
+
+    autoSelectTimerRef.current = setTimeout(() => {
+      clearAutoSelectTimer();
+      recordCurrentTrainingPoint();
+    }, AUTO_SELECT_DELAY_MS);
+
+    return clearAutoSelectTimer;
+  }, [isAutoSelectEnabled, shouldShowTrainingDot, isInputCoolingDown, clickCount, activePoint]);
+
+  useEffect(() => {
+    const shouldAskForRefinement =
+      trackerPhase === TRACKER_PHASES.CALIBRATION &&
+      clickCount >= BASELINE_TRAINING_POINTS &&
+      trainingGoal === BASELINE_TRAINING_POINTS &&
+      refinementDecision === 'pending';
+
+    if (!shouldAskForRefinement) {
+      return;
+    }
+
+    clearAutoSelectTimer();
+  }, [trackerPhase, clickCount, trainingGoal, refinementDecision]);
+
   if (isConsentPhase) {
     return (
       <section className="vision-tracker-inline">
         <div className="visage-consent-panel">
-          <p className="visage-consent-eyebrow">Privacy check</p>
-          <h1>Start Gaze Tracker?</h1>
+          <h1>Start Gaze Tracker</h1>
           <ul className="visage-consent-points">
-            <li>Opens in fullscreen mode for accurate screen calibration.</li>
-            <li>Asks for camera access so Ocula can estimate your gaze.</li>
-            <li>Runs on your own device. Your camera feed is not uploaded or stored.</li>
+            <li><strong>Step 1:</strong> Start calibration</li>
+            <li><strong>Step 2:</strong> Click 25 calibration dots</li>
+            <li><strong>Step 3:</strong> Live gaze tracking starts</li>
           </ul>
-          <small className="visage-permission-note">
-            Camera permission: {cameraPermissionStatus}
-            {cameraPermissionStatus === 'granted' ? ' — your browser already allowed this, so you may not see a popup.' : ''}
-          </small>
+          <p className="visage-consent-note">Optional: after calibration, you can add 15 extra inputs to refine accuracy.</p>
           {error && <strong className="visage-error">{error}</strong>}
           <button
             className="visage-start-calibration-button visage-consent-button"
@@ -451,7 +586,7 @@ const VisionTracker = () => {
             disabled={isStartingTracker}
             type="button"
           >
-            {isStartingTracker ? 'Requesting permission...' : 'Enter Fullscreen & Start Camera'}
+            {isStartingTracker ? 'Requesting permission...' : 'Enter Fullscreen & Start'}
           </button>
         </div>
       </section>
@@ -467,8 +602,43 @@ const VisionTracker = () => {
         Exit
       </button>
 
-      {isFaceLockPhase && (
-        <div className={showFaceLockTips ? 'visage-face-lock-actions' : 'visage-face-lock-actions visage-face-lock-actions-centered'}>
+      {!isConsentPhase && (
+        <div className="visage-screen-controls">
+          <div className="visage-tips-controls">
+            <button
+              className={showFaceLockTips ? 'visage-tips-button visage-tips-button-active' : 'visage-tips-button'}
+              onClick={() => setShowFaceLockTips(true)}
+              type="button"
+            >
+              Tips
+            </button>
+            {shouldShowRefinementOption && (
+              <button
+                className={showRefinementPrompt ? 'visage-optional-button visage-optional-button-active' : 'visage-optional-button'}
+                onClick={() => setShowRefinementPrompt(true)}
+                type="button"
+              >
+                Optional
+              </button>
+            )}
+          </div>
+          {!isFaceLockPhase && (
+            <div className="visage-select-controls">
+              <button
+                className={isAutoSelectEnabled ? 'visage-auto-select-button visage-auto-select-button-active' : 'visage-auto-select-button'}
+                onClick={toggleAutoSelect}
+                type="button"
+                aria-pressed={isAutoSelectEnabled}
+              >
+                Auto select {isAutoSelectEnabled ? 'On' : 'Off'}
+              </button>
+            </div>
+          )}
+        </div>
+      )}
+
+      {isFaceLockPhase && !showFaceLockTips && (
+        <div className="visage-face-lock-actions visage-face-lock-actions-centered">
           <button
             className="visage-start-calibration-button"
             onClick={startCalibrationPhase}
@@ -477,49 +647,46 @@ const VisionTracker = () => {
           >
             {isTrackerReady ? 'Start Calibration' : 'Starting camera...'}
           </button>
+          <button
+            className={isAutoSelectEnabled ? 'visage-auto-select-button visage-auto-select-button-active visage-face-lock-auto-select' : 'visage-auto-select-button visage-face-lock-auto-select'}
+            onClick={toggleAutoSelect}
+            type="button"
+            aria-pressed={isAutoSelectEnabled}
+          >
+            Auto select {isAutoSelectEnabled ? 'On' : 'Off'}
+          </button>
         </div>
       )}
 
       <div className={isFaceLockPhase ? 'visage-copy visage-face-lock-copy' : 'visage-copy'}>
-        {isFaceLockPhase ? (
-          showFaceLockTips ? (
-            <aside className="visage-face-lock-panel">
-              <div className="visage-face-lock-header">
-                <p className="visage-face-lock-message">Tips:</p>
-                <button className="visage-tips-close-button" onClick={() => setShowFaceLockTips(false)} type="button">
-                  Close
-                </button>
-              </div>
-              <ul className="visage-calibration-rules">
-                <li>Fill the face oval without cropping your forehead or chin.</li>
-                <li>Keep your head still during calibration. Even small head movements reduce accuracy.</li>
-                <li className="vision-desktop-tip">For best accuracy, look at each blue dot and click it with the mouse. Press <span>B</span> only if needed; it is less accurate.</li>
-                <li className="vision-mobile-tip">Look at each blue dot, then tap it once.</li>
-                <li className="vision-mobile-tip">Use a tripod or phone stand if possible so your face stays steady inside the silhouette.</li>
-                <li>After each input, keep looking at the dimmed dot until the next one appears.</li>
-                <li>Use steady lighting; remove glasses if reflections block your eyes.</li>
-                <li>Accuracy also depends on webcam quality and eye/pupil visibility.</li>
-              </ul>
-            </aside>
-          ) : null
-        ) : isTrainingComplete ? (
+        {showFaceLockTips ? (
+          <aside className="visage-face-lock-panel">
+            <div className="visage-face-lock-header">
+              <p className="visage-face-lock-message">Calibration Tips</p>
+              <button className="visage-tips-close-button" onClick={() => setShowFaceLockTips(false)} type="button">
+                Close
+              </button>
+            </div>
+            <ul className="visage-calibration-rules">
+              <li>Align your face inside the green guide oval.</li>
+              <li>Keep your head still; move only your eyes.</li>
+              <li className="vision-desktop-tip">Look at each blue dot and click it with your mouse for best accuracy. Press <span>B</span> only if needed.</li>
+              <li className="vision-mobile-tip">Look at each blue dot and tap it once, or use Auto select so dots are selected after a short pause.</li>
+              <li>Ensure steady front lighting; avoid glare on glasses or the webcam lens for best accuracy.</li>
+              <li>Tracking starts after 25 dots. Extra points are optional.</li>
+            </ul>
+          </aside>
+        ) : isFaceLockPhase || isTrainingComplete ? null : (
           <>
-            {isTrainingComplete && (
-              <strong className="visage-more-inputs-hint vision-desktop-tip">
-                Press SPACE for 15 more inputs to increase accuracy.
-              </strong>
-            )}
-          </>
-        ) : (
-          <>
-            <strong className="visage-calibration-counter visage-corner-counter">{calibrationCounter}</strong>
+            <div className="visage-calibration-status visage-corner-counter">
+              <strong className="visage-calibration-counter">Focus on the blue dot</strong>
+              <small className="visage-calibration-progress">{calibrationProgressCurrent}/{calibrationProgressGoal}</small>
+            </div>
             {shouldShowCalibrationInputHint && (
               <span className="visage-input-choice-hint">
-                <span className="vision-desktop-tip">Click the blue dot</span>
-                <em className="vision-desktop-tip">or</em>
-                <span className="vision-desktop-tip">Look at it, then press <b>B</b></span>
+                <span className="vision-desktop-tip">Click blue dot (or press <b>B</b>)</span>
                 <span className="vision-mobile-tip">Tap the blue dot</span>
-                <em className="vision-mobile-tip">then keep looking at it until it moves</em>
+                <span>Keep looking as it fades.</span>
                 <small>Keep your head still.</small>
               </span>
             )}
@@ -529,15 +696,51 @@ const VisionTracker = () => {
         {!error && isStartingTracker && <strong className="visage-loading">Starting camera...</strong>}
       </div>
 
+      {showRefinementPrompt && (
+        <aside className="visage-refinement-prompt" aria-live="polite">
+          <p className="visage-refinement-label">Optional</p>
+          <h2>{refinementDecision === 'accepted' ? 'Refinement active' : 'Need more accuracy?'}</h2>
+          <p>
+            {refinementDecision === 'accepted'
+              ? 'Complete the extra dots to finish the optional refinement round.'
+              : 'Add 15 extra inputs to refine accuracy, or continue with current tracking.'}
+          </p>
+          <div className="visage-refinement-actions">
+            <button className="visage-refinement-button" onClick={skipRefinementRound} type="button">
+              {refinementDecision === 'accepted' ? 'Close' : 'No'}
+            </button>
+            <button
+              className="visage-refinement-button visage-refinement-button-primary"
+              onClick={startRefinementRound}
+              disabled={refinementDecision === 'accepted'}
+              type="button"
+            >
+              Yes
+            </button>
+          </div>
+        </aside>
+      )}
+
       {shouldShowTrainingDot && (
-        <button
-          className={isInputCoolingDown ? 'visage-training-dot visage-training-dot-cooling' : 'visage-training-dot'}
-          onClick={handleTargetClick}
-          disabled={isInputCoolingDown}
-          style={{ left: `${activePoint.x}%`, top: `${activePoint.y}%` }}
-          type="button"
-          aria-label="Calibration point"
-        ></button>
+        <>
+          <button
+            className={isInputCoolingDown ? 'visage-training-dot visage-training-dot-cooling' : 'visage-training-dot'}
+            onClick={handleTargetClick}
+            disabled={isInputCoolingDown}
+            style={{ left: `${activePoint.x}%`, top: `${activePoint.y}%` }}
+            type="button"
+            aria-label="Calibration point"
+          ></button>
+          {isAutoSelectEnabled && !isInputCoolingDown && autoSelectRemainingMs > 0 && (
+            <span
+              className="visage-auto-select-timer"
+              style={{ left: `${activePoint.x}%`, top: `${activePoint.y}%` }}
+              aria-hidden="true"
+            >
+              {(autoSelectRemainingMs / 1000).toFixed(1)}s
+            </span>
+          )}
+        </>
       )}
 
       {shouldShowGazeDot && (

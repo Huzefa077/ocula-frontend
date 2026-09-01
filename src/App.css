@@ -1084,11 +1084,27 @@ button {
   text-align: left;
 }
 
-.history-item img {
+.history-item img,
+.history-thumbnail-placeholder {
   width: 4.5rem;
   height: 3.5rem;
-  object-fit: cover;
   border-radius: 12px;
+}
+
+.history-item img {
+  object-fit: cover;
+}
+
+.history-thumbnail-placeholder {
+  display: grid;
+  place-items: center;
+  background: rgba(0, 210, 255, 0.1);
+  border: 1px solid rgba(0, 210, 255, 0.22);
+  color: rgba(165, 243, 252, 0.82);
+  font-size: 0.68rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 
 .history-item strong {
@@ -1115,11 +1131,12 @@ button {
 }
 
 .guidelines-sticky-back {
-  position: sticky;
-  top: 6rem;
-  z-index: 12;
+  position: fixed;
+  top: 6.4rem;
+  left: max(1rem, calc((100vw - 72rem) / 2 - 7rem));
+  z-index: 30;
   width: max-content;
-  margin: 0 0 0.8rem;
+  margin: 0;
   border: 1px solid rgba(255, 255, 255, 0.18);
   border-radius: 999px;
   background: rgba(15, 23, 42, 0.72);
@@ -1155,6 +1172,7 @@ button {
 .guidelines-hero p {
   width: min(100%, 48rem);
   color: rgba(255, 251, 234, 0.76);
+  font-size: clamp(1.04rem, 1.4vw, 1.16rem);
   line-height: 1.65;
 }
 
@@ -1197,15 +1215,16 @@ button {
 .guide-manual-section h2 {
   margin: 0 0 0.55rem;
   color: #fffbea;
-  font-size: clamp(1.2rem, 2vw, 1.45rem);
+  font-size: clamp(1.28rem, 2.1vw, 1.56rem);
 }
 
 .guide-manual-section ul {
   display: grid;
-  gap: 0.45rem;
+  gap: 0.55rem;
   margin: 0;
   padding-left: 1.1rem;
   color: rgba(255, 251, 234, 0.72);
+  font-size: clamp(1.02rem, 1.35vw, 1.12rem);
   line-height: 1.55;
 }
 
@@ -1570,6 +1589,9 @@ button {
 
   .guidelines-sticky-back {
     top: 4.75rem;
+    left: 1rem;
+    padding: 0.52rem 0.8rem;
+    font-size: 0.86rem;
   }
 
   .guidelines-hero {

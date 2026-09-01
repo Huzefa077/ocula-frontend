@@ -38,6 +38,37 @@ function formatLabel(value) {
   return value.charAt(0).toUpperCase() + value.slice(1);
 }
 
+function isRemoteImageUrl(value = '') {
+  return /^https?:\/\//i.test(value);
+}
+
+function createHistoryTimestamp(value) {
+  const date = value ? new Date(value) : new Date();
+  return Number.isNaN(date.getTime()) ? new Date().toLocaleString() : date.toLocaleString();
+}
+
+function mapPersistedScanHistoryItem(scan) {
+  return {
+    id: scan.id,
+    scanSessionId: `persisted-${scan.id}`,
+    imageUrl: scan.imageUrl || '',
+    sourceType: scan.sourceType || 'url',
+    timestamp: createHistoryTimestamp(scan.createdAt),
+    createdAt: scan.createdAt,
+    faceCount: scan.faceCount || 0,
+    processingTimeMs: scan.processingTimeMs || 0,
+    faceSummaries: Array.isArray(scan.faceSummaries) ? scan.faceSummaries : [],
+    isPersisted: true
+  };
+}
+
+function isAuthExpiredError(error) {
+  const status = error?.response?.status;
+  const message = String(error?.response?.data || '').toLowerCase();
+
+  return status === 401 || message.includes('invalid or expired token');
+}
+
 function getInitialRouteFromUrl() {
   if (window.location.pathname === '/verify-email') return 'verify-email';
   if (window.location.pathname === '/reset-password') return 'reset-password';
@@ -213,6 +244,7 @@ class App extends Component {
         retrySecondsLeft: 0,
         healthFailureCount: 0
       });
+      this.loadScanHistory();
 
       this.backendConnectedTimerId = setTimeout(() => {
         this.setState({
@@ -253,6 +285,87 @@ class App extends Component {
       user: { ...initialUser, ...userProfile },
       isSignedIn: true,
       isGuest: false
+    }, () => {
+      this.loadScanHistory();
+    });
+  };
+
+  handleAuthExpired = () => {
+    clearAuthSession();
+    clearGuestMode();
+    this.setState({
+      isSignedIn: false,
+      isGuest: false,
+      user: { ...initialUser },
+      scanHistory: [],
+      isHistoryOpen: false,
+      detectMessage: '',
+      detectStatusMessage: 'Your sign-in session expired. The scan still worked, but sign in again to save history.'
+    });
+  };
+
+  loadScanHistory = () => {
+    if (!isApiConfigured || !this.state.user.id || this.state.isGuest) return;
+
+    axios.get(`${API_URL}/scan-history`, {
+      headers: buildAuthHeaders()
+    })
+      .then((response) => {
+        if (!Array.isArray(response.data)) return;
+
+        this.setState({
+          scanHistory: response.data.map(mapPersistedScanHistoryItem)
+        });
+      })
+      .catch((error) => {
+        if (isAuthExpiredError(error)) {
+          this.handleAuthExpired();
+          return;
+        }
+
+        console.error('Error loading scan history:', error);
+      });
+  };
+
+  saveScanHistoryItem = (historyItem) => {
+    if (!isApiConfigured || !this.state.user.id || this.state.isGuest) return;
+
+    axios.post(`${API_URL}/scan-history`, {
+      imageUrl: isRemoteImageUrl(historyItem.imageUrl) ? historyItem.imageUrl : '',
+      sourceType: historyItem.sourceType,
+      faceCount: historyItem.faceCount,
+      processingTimeMs: historyItem.processingTimeMs,
+      faceSummaries: historyItem.faceSummaries
+    }, {
+      headers: buildAuthHeaders()
+    })
+      .then((response) => {
+        const persistedHistoryItem = mapPersistedScanHistoryItem(response.data);
+
+        this.setState((prevState) => ({
+          scanHistory: prevState.scanHistory.map((scan) => (
+            scan.id === historyItem.id
+              ? {
+                ...persistedHistoryItem,
+                imageUrl: historyItem.sourceType === 'upload' ? historyItem.imageUrl : persistedHistoryItem.imageUrl
+              }
+              : scan
+          ))
+        }));
+      })
+      .catch((error) => {
+        if (isAuthExpiredError(error)) {
+          this.handleAuthExpired();
+          return;
+        }
+
+        console.error('Error saving scan history:', error);
+      });
+  };
+
+  openScanHistory = () => {
+    this.setState({ isHistoryOpen: true, route: 'home' }, () => {
+      this.loadScanHistory();
     });
   };
 
@@ -366,15 +479,23 @@ class App extends Component {
           console.warn('Unexpected response from /image:', count);
           return;
         }
+        const updatedUser = {
+          ...this.state.user,
+          entries: count
+        };
+
+        storeAuthUser(updatedUser);
         // Keep the local user count in sync with the backend.
         this.setState({
-          user: {
-            ...this.state.user,
-            entries: count
-          }
+          user: updatedUser
         });
       })
       .catch(err => {
+        if (isAuthExpiredError(err)) {
+          this.handleAuthExpired();
+          return;
+        }
+
         console.error('Error updating entries:', err);
         this.setState({
           detectMessage: err.response?.data || 'Face detected, but the backend server is unavailable right now.',
@@ -395,26 +516,39 @@ class App extends Component {
   };
 
   handlePhotoAnalysisUpdate = ({ faceSummaries, processingTimeMs }) => {
+    let historyItemToSave = null;
+
     this.setState((prevState) => {
       const shouldAddHistory = faceSummaries.length > 0 && prevState.imageUrl;
       const alreadySaved = prevState.scanHistory[0]?.scanSessionId === prevState.scanSessionId;
+      const sourceType = isRemoteImageUrl(prevState.imageUrl) ? 'url' : 'upload';
+      const newHistoryItem = {
+        id: `${Date.now()}-${prevState.scanSessionId}`,
+        scanSessionId: prevState.scanSessionId,
+        imageUrl: prevState.imageUrl,
+        sourceType,
+        timestamp: new Date().toLocaleString(),
+        faceCount: faceSummaries.length,
+        processingTimeMs,
+        faceSummaries,
+        isPersisted: false
+      };
+      historyItemToSave = shouldAddHistory && !alreadySaved ? newHistoryItem : null;
 
       return {
         photoFaceSummaries: faceSummaries,
         photoProcessingTimeMs: processingTimeMs,
         scanHistory: shouldAddHistory && !alreadySaved
           ? [
-            {
-              id: `${Date.now()}-${prevState.scanSessionId}`,
-              scanSessionId: prevState.scanSessionId,
-              imageUrl: prevState.imageUrl,
-              timestamp: new Date().toLocaleString(),
-              faceCount: faceSummaries.length
-            },
+            newHistoryItem,
             ...prevState.scanHistory
           ].slice(0, 10)
           : prevState.scanHistory
       };
+    }, () => {
+      if (historyItemToSave) {
+        this.saveScanHistoryItem(historyItemToSave);
+      }
     });
   };
 
@@ -426,10 +560,36 @@ class App extends Component {
     this.setState((prevState) => ({
       scanHistory: prevState.scanHistory.filter((scan) => scan.id !== scanId)
     }));
+
+    if (!isApiConfigured || !this.state.user.id || this.state.isGuest || String(scanId).includes('-')) return;
+
+    axios.delete(`${API_URL}/scan-history/${scanId}`, {
+      headers: buildAuthHeaders()
+    }).catch((error) => {
+      if (isAuthExpiredError(error)) {
+        this.handleAuthExpired();
+        return;
+      }
+
+      console.error('Error deleting scan history item:', error);
+    });
   };
 
   handleClearHistory = () => {
     this.setState({ scanHistory: [] });
+
+    if (!isApiConfigured || !this.state.user.id || this.state.isGuest) return;
+
+    axios.delete(`${API_URL}/scan-history`, {
+      headers: buildAuthHeaders()
+    }).catch((error) => {
+      if (isAuthExpiredError(error)) {
+        this.handleAuthExpired();
+        return;
+      }
+
+      console.error('Error clearing scan history:', error);
+    });
   };
 
   handleExportReady = (exportAnonymizedImage) => {
@@ -475,7 +635,7 @@ class App extends Component {
       // Reset app state on sign out so the next session starts clean.
       this.setState({
         input: '', imageUrl: '', detectMessage: '', detectStatusMessage: '', isDetecting: false,
-        photoFaceSummaries: [], photoFaceBoxes: [], blurredFaceIds: [],
+        photoFaceSummaries: [], photoFaceBoxes: [], blurredFaceIds: [], scanHistory: [], isHistoryOpen: false,
         route: nextRoute, previousRoute: this.state.route, isSignedIn: false, isGuest: false, user: { ...initialUser }
       });
     } else if (route === 'home') {
@@ -527,6 +687,8 @@ class App extends Component {
       photoFaceSummaries: [],
       photoFaceBoxes: [],
       blurredFaceIds: [],
+      scanHistory: [],
+      isHistoryOpen: false,
       activeDashboardTab,
       route: 'home',
       previousRoute: this.state.route,
@@ -684,7 +846,7 @@ class App extends Component {
           userName={user.name || 'Guest'}
           activeDashboardTab={activeDashboardTab}
           onDashboardTabChange={this.handleDashboardTabChange}
-          onOpenHistory={() => this.setState({ isHistoryOpen: true, route: 'home' })}
+          onOpenHistory={this.openScanHistory}
           onGuestMode={this.handleGuestMode}
           onBackNavigation={this.handleBackNavigation}
           onRouteChange={this.handleRouteChange}
@@ -858,7 +1020,7 @@ class App extends Component {
               )}
 
               <div className="dashboard-rank-strip">
-                <button className="dashboard-history-inline-button" onClick={() => this.setState({ isHistoryOpen: true })} type="button">
+                <button className="dashboard-history-inline-button" onClick={this.openScanHistory} type="button">
                   View History
                 </button>
                 <button className="dashboard-history-inline-button" onClick={() => this.handleRouteChange('guidelines')} type="button">
@@ -1011,10 +1173,17 @@ class App extends Component {
                       <div className="history-list">
                         {scanHistory.map((scan) => (
                           <article key={scan.id} className="history-item">
-                            <img src={scan.imageUrl} alt="Previous scan thumbnail" />
+                            {scan.imageUrl ? (
+                              <img src={scan.imageUrl} alt="Previous scan thumbnail" />
+                            ) : (
+                              <div className="history-thumbnail-placeholder" aria-hidden="true">
+                                Upload
+                              </div>
+                            )}
                             <div>
                               <strong>{scan.faceCount} face{scan.faceCount === 1 ? '' : 's'} detected</strong>
                               <p>{scan.timestamp}</p>
+                              {scan.processingTimeMs ? <p>{scan.processingTimeMs}ms processing time</p> : null}
                             </div>
                             <button className="history-delete-button" onClick={() => this.handleDeleteHistoryItem(scan.id)} type="button">
                               Delete

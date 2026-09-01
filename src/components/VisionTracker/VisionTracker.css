@@ -75,7 +75,7 @@
   position: absolute;
   left: 50%;
   top: 50%;
-  width: min(580px, 66vw);
+  width: min(667px, 76vw);
   aspect-ratio: 0.72 / 1;
   height: auto;
   border: 2px solid #10b981;
@@ -85,8 +85,8 @@
 }
 
 .visage-head-guide-face-lock {
-  width: min(580px, 66vw);
-  border-color: rgba(255, 255, 255, 0.94);
+  width: min(667px, 76vw);
+  border-color: rgba(16, 185, 129, 0.94);
   border-width: 6px;
 }
 
@@ -150,7 +150,7 @@
   border-radius: 14px;
   background: transparent;
   color: rgba(255, 255, 255, 0.82) !important;
-  font-size: clamp(1rem, 1.35vw, 1.28rem) !important;
+  font-size: clamp(1.35rem, 2.2vw, 1.75rem) !important;
   font-weight: 800;
   line-height: 1.28;
   letter-spacing: -0.02em;
@@ -176,20 +176,27 @@
 }
 
 .visage-tips-close-button {
+  -webkit-tap-highlight-color: transparent;
+  appearance: none;
+  -webkit-appearance: none;
   border: 1px solid rgba(255, 255, 255, 0.42);
   border-radius: 999px;
   background: rgba(15, 23, 42, 0.82);
   color: #ffffff;
   cursor: pointer;
-  font-size: 0.82rem;
+  font-size: clamp(0.95rem, 1.4vw, 1.1rem);
   font-weight: 800;
-  padding: 0.52rem 0.82rem;
+  padding: 0.72rem 1.05rem;
   pointer-events: auto;
   box-shadow: 0 10px 26px rgba(0, 0, 0, 0.28);
+  transition: transform 0.18s ease, background 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
 }
 
 .visage-tips-close-button:hover {
   background: rgba(30, 41, 59, 0.96);
+  border-color: rgba(255, 255, 255, 0.66);
+  box-shadow: 0 16px 34px rgba(0, 0, 0, 0.34);
+  transform: translateY(-1px);
 }
 
 .visage-face-lock-actions {
@@ -201,6 +208,9 @@
 }
 
 .visage-face-lock-actions-centered {
+  display: grid;
+  gap: 0.85rem;
+  justify-items: center;
   top: 50%;
   bottom: auto;
   transform: translate(-50%, -50%);
@@ -208,20 +218,20 @@
 
 .visage-calibration-rules {
   max-width: none;
-  margin: 1rem auto 0 !important;
+  margin: 1.1rem auto 0 !important;
   padding: 0;
   border-radius: 0;
   background: transparent;
-  color: rgba(255, 255, 255, 0.58) !important;
-  font-size: clamp(0.76rem, 1vw, 0.86rem) !important;
+  color: rgba(255, 255, 255, 0.76) !important;
+  font-size: clamp(1rem, 1.45vw, 1.18rem) !important;
   text-align: left;
   list-style-position: outside;
   padding-left: 1.05rem;
 }
 
 .visage-calibration-rules li {
-  margin-bottom: 0.48rem;
-  line-height: 1.35;
+  margin-bottom: 0.7rem;
+  line-height: 1.45;
 }
 
 .visage-calibration-rules span {
@@ -239,18 +249,25 @@
 .visage-start-calibration-button {
   display: block;
   margin: 0 auto;
-  min-width: 12rem;
+  min-width: 16rem;
   border: 1px solid rgba(110, 231, 183, 0.72);
   border-radius: 999px;
   background: linear-gradient(135deg, rgba(5, 150, 105, 0.94), rgba(20, 184, 166, 0.82));
   color: #ecfdf5;
   cursor: pointer;
-  font-size: 1rem;
+  font-size: clamp(1.1rem, 1.6vw, 1.3rem);
   font-weight: 800;
-  padding: 0.82rem 1.25rem;
+  padding: 1rem 1.55rem;
   pointer-events: auto;
   text-shadow: 0 1px 8px rgba(0, 0, 0, 0.35);
   box-shadow: 0 16px 38px rgba(5, 150, 105, 0.34), 0 0 0 4px rgba(5, 150, 105, 0.14);
+  transition: transform 0.18s ease, box-shadow 0.18s ease, filter 0.18s ease;
+}
+
+.visage-start-calibration-button:hover:not(:disabled) {
+  filter: brightness(1.1);
+  box-shadow: 0 22px 52px rgba(5, 150, 105, 0.46), 0 0 0 5px rgba(5, 150, 105, 0.2);
+  transform: translateY(-2px) scale(1.02);
 }
 
 .visage-copy h1 {
@@ -266,7 +283,7 @@
   margin: 0;
   max-width: 34rem;
   color: #fff;
-  font-size: clamp(2rem, 4vw, 2.8rem);
+  font-size: clamp(2.25rem, 4.5vw, 3.15rem);
   opacity: 1;
 }
 
@@ -279,13 +296,13 @@
 
 .visage-consent-points {
   display: grid;
-  gap: 0.7rem;
+  gap: 0.9rem;
   width: min(100%, 34rem);
   margin: 0;
   padding: 0;
-  color: rgba(255, 255, 255, 0.76);
-  font-size: clamp(0.95rem, 1.5vw, 1.04rem);
-  line-height: 1.45;
+  color: rgba(255, 255, 255, 0.82);
+  font-size: clamp(1.05rem, 1.75vw, 1.24rem);
+  line-height: 1.5;
   list-style: none;
   text-align: left;
 }
@@ -305,6 +322,24 @@
   border-radius: 999px;
   background: #38bdf8;
   box-shadow: 0 0 12px rgba(56, 189, 248, 0.45);
+}
+
+.visage-consent-points strong {
+  color: #67e8f9;
+  font-weight: 900;
+}
+
+.visage-consent-note {
+  max-width: 34rem;
+  margin: 0;
+  padding: 0.72rem 1rem;
+  border: 1px solid rgba(103, 232, 249, 0.18);
+  border-radius: 18px;
+  background: rgba(14, 116, 144, 0.12);
+  color: rgba(255, 255, 255, 0.68) !important;
+  font-size: clamp(0.94rem, 1.5vw, 1.04rem) !important;
+  font-weight: 700;
+  line-height: 1.45;
 }
 
 .visage-copy p {
@@ -356,25 +391,41 @@
 
 .visage-calibration-counter {
   display: inline-block;
-  margin-bottom: 0.65rem;
-  padding: 0.35rem 0.8rem;
-  border: 1px solid rgba(14, 165, 233, 0.42);
+  margin: 0;
+  padding: 0.62rem 1.35rem;
+  border: 1px solid rgba(14, 165, 233, 0.24);
   border-radius: 999px;
-  background: rgba(14, 165, 233, 0.12);
+  background: rgba(5, 7, 11, 0.22);
   color: #7dd3fc;
-  font-size: 0.8rem;
+  font-size: clamp(0.95rem, 1.8vw, 1.25rem);
   font-weight: 800;
   letter-spacing: 0.06em;
+  opacity: 0.5;
   text-transform: uppercase;
+}
+
+.visage-calibration-progress {
+  display: block;
+  margin-top: 0.4rem;
+  color: rgba(255, 255, 255, 0.82);
+  font-size: clamp(1.05rem, 2vw, 1.45rem);
+  font-weight: 900;
+  letter-spacing: 0.03em;
+  line-height: 1;
+  opacity: 0.5;
+  text-align: center;
 }
 
 .visage-corner-counter {
   position: fixed;
-  left: 1rem;
-  top: 1rem;
+  left: 50%;
+  top: 50%;
+  bottom: auto;
   z-index: 10;
   margin: 0;
   pointer-events: none;
+  text-align: center;
+  transform: translate(-50%, -50%);
 }
 
 .visage-input-choice-hint {
@@ -420,6 +471,7 @@
 .visage-training-dot {
   appearance: none;
   -webkit-appearance: none;
+  -webkit-tap-highlight-color: transparent;
   position: absolute;
   z-index: 5;
   width: 2.6rem;
@@ -444,6 +496,7 @@
 
 .visage-training-dot:focus,
 .visage-training-dot:focus-visible,
+.visage-training-dot:active,
 .visage-training-dot-cooling {
   border: none !important;
   outline: none !important;
@@ -500,6 +553,100 @@
   transform: translateX(-50%);
 }
 
+.visage-refinement-prompt {
+  position: fixed;
+  left: 50%;
+  top: 50%;
+  z-index: 12;
+  width: min(86vw, 22rem);
+  display: grid;
+  gap: 0.72rem;
+  padding: clamp(1rem, 2vw, 1.35rem);
+  border: 1px solid rgba(103, 232, 249, 0.26);
+  border-radius: 20px;
+  background: rgba(8, 17, 31, 0.9);
+  box-shadow: 0 18px 46px rgba(0, 0, 0, 0.34), 0 0 24px rgba(14, 165, 233, 0.1);
+  color: #f8fafc;
+  pointer-events: auto;
+  text-align: left;
+  transform: translate(-50%, -50%);
+}
+
+.visage-refinement-label {
+  width: fit-content;
+  margin: 0;
+  padding: 0.28rem 0.62rem;
+  border: 1px solid rgba(103, 232, 249, 0.32);
+  border-radius: 999px;
+  background: rgba(14, 116, 144, 0.26);
+  color: #67e8f9;
+  font-size: 0.78rem;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.visage-refinement-prompt h2 {
+  margin: 0;
+  color: #fff7ed;
+  font-size: clamp(1.35rem, 2.8vw, 1.85rem);
+  line-height: 1;
+}
+
+.visage-refinement-prompt p {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.78);
+  font-size: clamp(0.9rem, 1.4vw, 1rem);
+  font-weight: 700;
+  line-height: 1.45;
+}
+
+.visage-refinement-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+  margin-top: 0.25rem;
+}
+
+.visage-refinement-button {
+  -webkit-tap-highlight-color: transparent;
+  appearance: none;
+  -webkit-appearance: none;
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  border-radius: 999px;
+  background: rgba(30, 41, 59, 0.95);
+  color: #ffffff;
+  cursor: pointer;
+  font-size: 0.94rem;
+  font-weight: 900;
+  padding: 0.72rem 0.9rem;
+  transition: transform 0.18s ease, background 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
+}
+
+.visage-refinement-button:hover:not(:disabled) {
+  background: rgba(51, 65, 85, 0.98);
+  border-color: rgba(255, 255, 255, 0.52);
+  box-shadow: 0 14px 30px rgba(0, 0, 0, 0.32);
+  transform: translateY(-1px);
+}
+
+.visage-refinement-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.56;
+  transform: none;
+}
+
+.visage-refinement-button-primary {
+  border-color: rgba(45, 212, 191, 0.54);
+  background: rgba(4, 120, 87, 0.96);
+  color: #ecfdf5;
+}
+
+.visage-refinement-button-primary:hover:not(:disabled) {
+  background: rgba(5, 150, 105, 0.98);
+  border-color: rgba(94, 234, 212, 0.72);
+}
+
 @keyframes visageHintGlow {
   0% {
     box-shadow: 0 0 0 rgba(16, 185, 129, 0);
@@ -519,21 +666,150 @@
 
 .visage-exit-button {
   position: fixed;
-  right: 1rem;
-  top: 1rem;
+  right: 1.15rem;
+  top: 1.15rem;
   z-index: 10;
   border: 1px solid rgba(255, 255, 255, 0.38);
   border-radius: 999px;
   background: rgba(15, 23, 42, 0.72);
   color: #ffffff;
   cursor: pointer;
+  font-size: clamp(1.05rem, 1.6vw, 1.25rem);
   font-weight: 800;
-  padding: 0.62rem 1rem;
+  padding: 1rem 1.55rem;
   box-shadow: 0 10px 28px rgba(0, 0, 0, 0.24);
+  transition: transform 0.18s ease, background 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
 }
 
 .visage-exit-button:hover {
   background: rgba(30, 41, 59, 0.9);
+  border-color: rgba(255, 255, 255, 0.62);
+  box-shadow: 0 16px 38px rgba(0, 0, 0, 0.34);
+  transform: translateY(-1px);
+}
+
+.visage-screen-controls {
+  position: fixed;
+  left: 1.15rem;
+  top: 1.15rem;
+  z-index: 10;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.65rem;
+}
+
+.visage-select-controls {
+  display: grid;
+  gap: 0.45rem;
+  justify-items: start;
+}
+
+.visage-tips-controls {
+  display: grid;
+  gap: 0.45rem;
+  justify-items: start;
+}
+
+.visage-tips-button,
+.visage-auto-select-button,
+.visage-optional-button {
+  -webkit-tap-highlight-color: transparent;
+  appearance: none;
+  -webkit-appearance: none;
+  border: 1px solid rgba(56, 189, 248, 0.46);
+  border-radius: 999px;
+  background: rgba(8, 47, 73, 0.74);
+  color: #cffafe;
+  cursor: pointer;
+  font-size: clamp(1.05rem, 1.6vw, 1.25rem);
+  font-weight: 900;
+  opacity: 0.62;
+  padding: 1rem 1.55rem;
+  box-shadow: 0 12px 32px rgba(8, 47, 73, 0.34);
+  transition: transform 0.18s ease, background 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease, opacity 0.18s ease;
+}
+
+.visage-tips-button:hover,
+.visage-tips-button-active,
+.visage-auto-select-button:hover,
+.visage-optional-button:hover,
+.visage-optional-button-active {
+  background: rgba(14, 116, 144, 0.86);
+  border-color: rgba(103, 232, 249, 0.72);
+  box-shadow: 0 18px 42px rgba(14, 116, 144, 0.42);
+  opacity: 0.86;
+}
+
+.visage-tips-button:hover,
+.visage-auto-select-button:hover,
+.visage-optional-button:hover {
+  transform: translateY(-1px);
+}
+
+.visage-tips-button:focus,
+.visage-tips-button:focus-visible,
+.visage-tips-button:active,
+.visage-auto-select-button:focus,
+.visage-auto-select-button:focus-visible,
+.visage-auto-select-button:active,
+.visage-optional-button:focus,
+.visage-optional-button:focus-visible,
+.visage-optional-button:active,
+.visage-refinement-button:focus,
+.visage-refinement-button:focus-visible,
+.visage-refinement-button:active,
+.visage-tips-close-button:focus,
+.visage-tips-close-button:focus-visible,
+.visage-tips-close-button:active {
+  outline: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.visage-auto-select-button,
+.visage-optional-button {
+  border-color: rgba(148, 163, 184, 0.38);
+  background: rgba(15, 23, 42, 0.68);
+  color: rgba(255, 255, 255, 0.82);
+}
+
+.visage-optional-button-active {
+  color: #cffafe;
+}
+
+.visage-auto-select-button-active {
+  border-color: rgba(125, 211, 252, 0.82);
+  background: linear-gradient(135deg, #7dd3fc, #22d3ee);
+  color: #03131f;
+  opacity: 0.9;
+  box-shadow: 0 16px 38px rgba(14, 165, 233, 0.48);
+}
+
+.visage-optional-button {
+  border-color: rgba(45, 212, 191, 0.34);
+  background: rgba(8, 47, 73, 0.58);
+}
+
+.visage-face-lock-auto-select {
+  min-width: min(82vw, 16rem);
+  justify-content: center;
+}
+
+.visage-auto-select-timer {
+  position: absolute;
+  z-index: 6;
+  min-width: 2.5rem;
+  margin-top: 1.05rem;
+  padding: 0.15rem 0.45rem;
+  border-radius: 999px;
+  background: rgba(5, 7, 11, 0.58);
+  color: rgba(255, 255, 255, 0.78);
+  font-size: 0.7rem;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  line-height: 1.2;
+  pointer-events: none;
+  text-align: center;
+  transform: translate(-50%, 50%);
 }
 
 @media (max-width: 760px) {
@@ -550,11 +826,11 @@
   }
 
   .visage-head-guide {
-    width: min(82vw, 28rem);
+    width: min(94vw, 32rem);
   }
 
   .visage-head-guide-face-lock {
-    width: min(88vw, 34rem);
+    width: min(96vw, 39rem);
   }
 
   .visage-face-lock-video {
@@ -573,5 +849,56 @@
 
   .visage-face-lock-panel {
     min-height: auto;
+  }
+
+  .visage-exit-button,
+  .visage-tips-button,
+  .visage-auto-select-button,
+  .visage-optional-button {
+    top: 0.85rem;
+    padding: 0.78rem 1rem;
+    font-size: 1rem;
+  }
+
+  .visage-exit-button {
+    right: 0.85rem;
+  }
+
+  .visage-screen-controls {
+    left: 0.85rem;
+    top: 0.85rem;
+    flex-direction: row;
+    align-items: flex-start;
+    gap: 0.45rem;
+  }
+
+  .visage-tips-controls,
+  .visage-select-controls {
+    gap: 0.38rem;
+  }
+
+  .visage-tips-button,
+  .visage-auto-select-button,
+  .visage-optional-button {
+    padding: 0.64rem 0.9rem;
+    font-size: 0.88rem;
+  }
+
+  .visage-calibration-counter {
+    padding: 0.6rem 1.1rem;
+    font-size: 1.15rem;
+  }
+
+  .visage-refinement-prompt {
+    left: 50%;
+    top: 52%;
+    width: min(90vw, 22rem);
+    background: rgba(8, 17, 31, 0.86);
+    transform: translate(-50%, -50%);
+  }
+
+  .visage-start-calibration-button {
+    min-width: min(82vw, 16rem);
+    font-size: 1.05rem;
   }
 }
