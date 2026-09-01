@@ -250,23 +250,23 @@
   display: block;
   margin: 0 auto;
   min-width: 16rem;
-  border: 1px solid rgba(110, 231, 183, 0.72);
+  border: 1px solid rgba(103, 232, 249, 0.58);
   border-radius: 999px;
-  background: linear-gradient(135deg, rgba(5, 150, 105, 0.94), rgba(20, 184, 166, 0.82));
-  color: #ecfdf5;
+  background: linear-gradient(135deg, rgba(8, 145, 178, 0.9), rgba(13, 148, 136, 0.78));
+  color: #e0faff;
   cursor: pointer;
   font-size: clamp(1.1rem, 1.6vw, 1.3rem);
   font-weight: 800;
   padding: 1rem 1.55rem;
   pointer-events: auto;
   text-shadow: 0 1px 8px rgba(0, 0, 0, 0.35);
-  box-shadow: 0 16px 38px rgba(5, 150, 105, 0.34), 0 0 0 4px rgba(5, 150, 105, 0.14);
+  box-shadow: 0 16px 38px rgba(8, 145, 178, 0.3), 0 0 0 4px rgba(34, 211, 238, 0.1);
   transition: transform 0.18s ease, box-shadow 0.18s ease, filter 0.18s ease;
 }
 
 .visage-start-calibration-button:hover:not(:disabled) {
-  filter: brightness(1.1);
-  box-shadow: 0 22px 52px rgba(5, 150, 105, 0.46), 0 0 0 5px rgba(5, 150, 105, 0.2);
+  filter: brightness(1.08);
+  box-shadow: 0 22px 52px rgba(8, 145, 178, 0.42), 0 0 0 5px rgba(34, 211, 238, 0.16);
   transform: translateY(-2px) scale(1.02);
 }
 
@@ -699,6 +699,141 @@
   gap: 0.65rem;
 }
 
+.visage-menu-toggle {
+  -webkit-tap-highlight-color: transparent;
+  appearance: none;
+  -webkit-appearance: none;
+  position: fixed;
+  left: 1.15rem;
+  top: 1.15rem;
+  z-index: 31;
+  display: grid;
+  gap: 0.28rem;
+  width: 3.05rem;
+  height: 3.05rem;
+  place-content: center;
+  border: 1px solid rgba(148, 163, 184, 0.28);
+  border-radius: 16px;
+  background: rgba(15, 23, 42, 0.52);
+  cursor: pointer;
+  opacity: 0.5;
+  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.24);
+  transition: transform 0.18s ease, background 0.18s ease, border-color 0.18s ease, opacity 0.18s ease;
+}
+
+.visage-menu-toggle span {
+  display: block;
+  width: 1.35rem;
+  height: 0.16rem;
+  border-radius: 999px;
+  background: #e0faff;
+}
+
+.visage-menu-toggle:hover,
+.visage-menu-toggle-open {
+  background: rgba(14, 116, 144, 0.74);
+  border-color: rgba(103, 232, 249, 0.58);
+  opacity: 0.69;
+  transform: translateY(-1px);
+}
+
+.visage-menu-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 28;
+  background: rgba(0, 0, 0, 0.28);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.22s ease;
+}
+
+.visage-menu-backdrop-open {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.visage-side-menu {
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: 30;
+  width: min(82vw, 20rem);
+  height: 100vh;
+  height: 100dvh;
+  display: grid;
+  align-content: start;
+  gap: 0.85rem;
+  padding: 1.15rem;
+  padding-top: 5rem;
+  border-right: 1px solid rgba(103, 232, 249, 0.16);
+  background:
+    radial-gradient(circle at 20% 0%, rgba(14, 165, 233, 0.18), transparent 32%),
+    rgba(5, 13, 25, 0.96);
+  box-shadow: 26px 0 70px rgba(0, 0, 0, 0.44);
+  transform: translateX(-105%);
+  transition: transform 0.28s ease;
+}
+
+.visage-side-menu-open {
+  transform: translateX(0);
+}
+
+.visage-side-menu-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding-bottom: 0.7rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  color: #fff7ed;
+}
+
+.visage-side-menu-header strong {
+  font-size: 1.15rem;
+  font-weight: 900;
+}
+
+.visage-menu-action {
+  -webkit-tap-highlight-color: transparent;
+  appearance: none;
+  -webkit-appearance: none;
+  border: 1px solid rgba(148, 163, 184, 0.24);
+  border-radius: 16px;
+  background: rgba(15, 23, 42, 0.7);
+  color: rgba(255, 255, 255, 0.84);
+  cursor: pointer;
+  font-weight: 900;
+  transition: transform 0.18s ease, background 0.18s ease, border-color 0.18s ease;
+}
+
+.visage-menu-action {
+  width: 100%;
+  padding: 0.95rem 1rem;
+  text-align: left;
+  font-size: 1rem;
+}
+
+.visage-menu-action:hover,
+.visage-menu-action-active {
+  background: rgba(14, 116, 144, 0.7);
+  border-color: rgba(103, 232, 249, 0.48);
+  color: #cffafe;
+  transform: translateX(2px);
+}
+
+.visage-menu-action-blue {
+  border-color: rgba(125, 211, 252, 0.8);
+  background: linear-gradient(135deg, #7dd3fc, #22d3ee);
+  color: #03131f;
+}
+
+.visage-menu-action-exit {
+  margin-top: 0.7rem;
+  border-color: rgba(252, 165, 165, 0.38);
+  background: rgba(127, 29, 29, 0.44);
+  color: #fee2e2;
+}
+
 .visage-select-controls {
   display: grid;
   gap: 0.45rem;
@@ -900,8 +1035,102 @@
     transform: translate(-50%, -50%);
   }
 
+  .visage-menu-toggle {
+    left: 0.72rem;
+    top: 0.72rem;
+    width: 2.75rem;
+    height: 2.75rem;
+    border-radius: 14px;
+  }
+
+  .visage-menu-toggle span {
+    width: 1.18rem;
+  }
+
+  .visage-side-menu {
+    width: min(84vw, 19rem);
+    padding: 0.95rem;
+    padding-top: 4.5rem;
+  }
+
+  .visage-menu-action {
+    padding: 0.82rem 0.9rem;
+    font-size: 0.94rem;
+  }
+
   .visage-start-calibration-button {
     min-width: min(82vw, 16rem);
     font-size: 1.05rem;
+  }
+
+  .visage-face-lock-auto-select {
+    width: min(82vw, 16rem);
+    min-width: min(82vw, 16rem);
+    min-height: 3.55rem;
+    padding: 1rem 1.55rem;
+    font-size: 1.05rem;
+    font-weight: 800;
+  }
+}
+
+@media (hover: none), (max-width: 760px) {
+  .visage-tips-close-button:hover,
+  .visage-start-calibration-button:hover:not(:disabled),
+  .visage-refinement-button:hover:not(:disabled),
+  .visage-refinement-button-primary:hover:not(:disabled),
+  .visage-exit-button:hover,
+  .visage-tips-button:hover,
+  .visage-auto-select-button:hover,
+  .visage-optional-button:hover,
+  .visage-menu-toggle:hover,
+  .visage-menu-action:hover {
+    transform: none;
+    filter: none;
+    box-shadow: none;
+  }
+
+  .visage-start-calibration-button:hover:not(:disabled) {
+    box-shadow: 0 16px 38px rgba(8, 145, 178, 0.3), 0 0 0 4px rgba(34, 211, 238, 0.1);
+  }
+
+  .visage-auto-select-button-active:hover {
+    border-color: rgba(125, 211, 252, 0.82);
+    background: linear-gradient(135deg, #7dd3fc, #22d3ee);
+    color: #03131f;
+    box-shadow: 0 16px 38px rgba(14, 165, 233, 0.48);
+  }
+
+  .visage-menu-action:hover {
+    background: rgba(15, 23, 42, 0.7);
+    border-color: rgba(148, 163, 184, 0.24);
+    color: rgba(255, 255, 255, 0.84);
+  }
+
+  .visage-menu-action-active,
+  .visage-menu-action-active:hover {
+    background: rgba(14, 116, 144, 0.7);
+    border-color: rgba(103, 232, 249, 0.48);
+    color: #cffafe;
+  }
+
+  .visage-menu-action-blue,
+  .visage-menu-action-blue:hover {
+    border-color: rgba(125, 211, 252, 0.8);
+    background: linear-gradient(135deg, #7dd3fc, #22d3ee);
+    color: #03131f;
+  }
+
+  .visage-menu-toggle,
+  .visage-tips-close-button,
+  .visage-start-calibration-button,
+  .visage-refinement-button,
+  .visage-exit-button,
+  .visage-tips-button,
+  .visage-auto-select-button,
+  .visage-optional-button,
+  .visage-menu-action,
+  .visage-training-dot {
+    -webkit-tap-highlight-color: transparent;
+    outline: none;
   }
 }

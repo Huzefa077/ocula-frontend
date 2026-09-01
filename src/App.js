@@ -1004,6 +1004,12 @@ class App extends Component {
           <>
             <div className="dashboard-shell">
               {activeDashboardTab === 'photo' && (
+                <section className="dashboard-page-title" aria-labelledby="photo-scan-title">
+                  <h1 id="photo-scan-title">Face Analysis &amp; Blur</h1>
+                </section>
+              )}
+
+              {activeDashboardTab === 'photo' && (
                 <section className="dashboard-toolbar">
                   <ImageLinkForm
                     onInputChange={this.handleImageInputChange}
@@ -1104,10 +1110,6 @@ class App extends Component {
                         )}
                       </div>
 
-                      <p className="analysis-disclaimer">
-                        AI results are estimates and can be wrong. Age, gender, and emotion predictions depend on image quality, lighting, face angle, and model limitations.
-                      </p>
-
                       <section className="privacy-blur-card">
                         <div>
                           <span className="telemetry-label">Selective Privacy Blur</span>
@@ -1150,6 +1152,11 @@ class App extends Component {
               )}
 
               {canViewUsers && <AdminPanel />}
+              {activeDashboardTab === 'photo' && (
+                <p className="analysis-disclaimer">
+                  AI results are estimates and can be wrong. Age, gender, and emotion predictions depend on image quality, lighting, face angle, and model limitations.
+                </p>
+              )}
               {isHistoryOpen && (
                 <div className="history-overlay" role="presentation" onMouseDown={(event) => {
                   if (event.target === event.currentTarget) {

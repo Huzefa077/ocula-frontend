@@ -96,7 +96,7 @@ const Navigation = ({
         ) : (
           <>
             {isGuest && <button onClick={() => goToRoute('signin')} className="navigation-link-button" type="button">Sign In</button>}
-            <button onClick={() => goToRoute('signout')} className="navigation-link-button" type="button">{isGuest ? 'Exit Guest Mode' : 'Sign Out'}</button>
+            <button onClick={() => goToRoute('signout')} className="navigation-link-button navigation-signout-button" type="button">{isGuest ? 'Exit Guest Mode' : 'Sign Out'}</button>
           </>
         )}
       </>
@@ -116,7 +116,7 @@ const Navigation = ({
         {isLanding ? (
           <>
             {isSignedIn && !isGuest && attachUserMenuRef && (
-              <button onClick={() => goToRoute('signout')} className="navigation-link-button" type="button">
+              <button onClick={() => goToRoute('signout')} className="navigation-link-button navigation-signout-button" type="button">
                 Sign Out
               </button>
             )}
@@ -134,6 +134,17 @@ const Navigation = ({
 
     return (
       <nav className="navigation navigation-sticky">
+        <button
+          className={isMobileMenuOpen ? 'navigation-menu-toggle navigation-menu-toggle-open' : 'navigation-menu-toggle'}
+          onClick={() => setIsMobileMenuOpen((value) => !value)}
+          type="button"
+          aria-label={isMobileMenuOpen ? 'Close navigation menu' : 'Open navigation menu'}
+          aria-expanded={isMobileMenuOpen}
+        >
+          <span></span>
+          <span></span>
+          <span></span>
+        </button>
         {brand}
 
         <div className="navigation-center">
@@ -144,17 +155,6 @@ const Navigation = ({
           {renderActionNavigation()}
         </div>
 
-        <button
-          className="navigation-menu-toggle"
-          onClick={() => setIsMobileMenuOpen((value) => !value)}
-          type="button"
-          aria-label="Toggle navigation menu"
-          aria-expanded={isMobileMenuOpen}
-        >
-          <span></span>
-          <span></span>
-          <span></span>
-        </button>
         {isLanding && isSignedIn && !isGuest && (
           <button onClick={() => goToRoute('signout')} className="navigation-mobile-signout" type="button">
             Sign Out
@@ -164,12 +164,14 @@ const Navigation = ({
           <span className="navigation-mobile-user-name">{isGuest ? 'Guest' : userName}</span>
         )}
 
-        {isMobileMenuOpen && (
-          <div className="navigation-mobile-menu">
-            <div className="navigation-mobile-section">{renderCenterNavigation()}</div>
-            <div className="navigation-mobile-section navigation-mobile-actions">{renderActionNavigation(false)}</div>
+        <div className={isMobileMenuOpen ? 'navigation-mobile-backdrop navigation-mobile-backdrop-open' : 'navigation-mobile-backdrop'} onClick={closeMobileMenu} aria-hidden="true"></div>
+        <aside className={isMobileMenuOpen ? 'navigation-mobile-menu navigation-mobile-menu-open' : 'navigation-mobile-menu'} aria-label="Navigation menu">
+          <div className="navigation-mobile-menu-header">
+            <strong>Ocula</strong>
           </div>
-        )}
+          <div className="navigation-mobile-section">{renderCenterNavigation()}</div>
+          <div className="navigation-mobile-section navigation-mobile-actions">{renderActionNavigation(false)}</div>
+        </aside>
       </nav>
     );
 }

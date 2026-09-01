@@ -779,6 +779,20 @@ button {
   margin: 0 0 0.7rem;
 }
 
+.dashboard-page-title {
+  margin: 0.2rem 0 0.85rem;
+  padding: 0.35rem 0;
+  color: #fff7ed;
+}
+
+.dashboard-page-title h1 {
+  margin: 0;
+  color: #ffffff;
+  font-size: clamp(2rem, 3.6vw, 3.4rem);
+  font-weight: 900;
+  line-height: 1;
+}
+
 .dashboard-grid {
   display: grid;
   grid-template-columns: minmax(0, 7fr) minmax(18rem, 5fr);
@@ -874,15 +888,13 @@ button {
 }
 
 .analysis-disclaimer {
-  margin: 0;
-  padding: 0.75rem 0.9rem;
-  border: 1px solid rgba(255, 228, 110, 0.2);
-  border-radius: 14px;
-  background: rgba(255, 228, 110, 0.07);
-  color: rgba(255, 251, 234, 0.7);
-  font-size: 0.85rem;
-  font-weight: 700;
-  line-height: 1.45;
+  max-width: 62rem;
+  margin: 1.1rem auto 0;
+  color: rgba(255, 251, 234, 0.38);
+  font-size: 0.82rem;
+  /* font-weight: 700; */
+  line-height: 1.5;
+  text-align: center;
 }
 
 .blur-pill {
@@ -1562,6 +1574,17 @@ button {
     order: 2;
   }
 
+  .dashboard-page-title {
+    order: 0;
+    margin: 0 0 0.75rem;
+    padding: 0.7rem 0.8rem;
+    text-align: left;
+  }
+
+  .dashboard-page-title h1 {
+    font-size: clamp(1.45rem, 8vw, 2rem);
+  }
+
   .dashboard-rank-strip {
     order: 4;
     grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -1593,6 +1616,13 @@ button {
 
   .dashboard-telemetry-panel {
     order: 3;
+  }
+
+  .analysis-disclaimer {
+    order: 6;
+    margin: 1rem 0 0;
+    font-size: 0.78rem;
+    text-align: left;
   }
 
   .guidelines-page {
@@ -1657,4 +1687,81 @@ button {
 
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
   background: rgba(0, 210, 255, 0.5);
+}
+
+@media (hover: none), (max-width: 760px) {
+  .landing-card-link:hover,
+  .landing-primary-button:hover,
+  .landing-secondary-button:hover,
+  .landing-link-button:hover,
+  .hero-preview-card-button:hover,
+  .dashboard-history-inline-button:hover,
+  .dashboard-tab:hover,
+  .dashboard-history-button:hover,
+  .blur-pill:hover,
+  .export-blur-button:hover,
+  .guidelines-sticky-back:hover,
+  .status-button:hover {
+    transform: none;
+    box-shadow: none;
+  }
+
+  .landing-card-link:hover {
+    background: rgba(0, 210, 255, 0.1);
+  }
+
+  .landing-primary-button:hover {
+    background: #ffe46e;
+    color: #111827;
+  }
+
+  .landing-secondary-button:hover,
+  .landing-link-button:hover,
+  .dashboard-history-inline-button:hover,
+  .dashboard-history-button:hover,
+  .status-button:hover {
+    background: rgba(255, 255, 255, 0.1);
+  }
+
+  .hero-preview-card-button:hover {
+    border-color: rgba(255, 255, 255, 0.12);
+  }
+
+  .dashboard-tab:hover {
+    background: transparent;
+    color: #94a3b8;
+  }
+
+  .dashboard-tab-active,
+  .dashboard-tab-active:hover {
+    background: rgba(6, 182, 212, 0.2);
+    border-color: rgba(6, 182, 212, 0.3);
+    color: #67e8f9;
+    box-shadow: 0 0 12px rgba(0, 210, 255, 0.2);
+  }
+
+  .blur-pill:hover,
+  .export-blur-button:hover,
+  .guidelines-sticky-back:hover {
+    filter: none;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: rgba(0, 210, 255, 0.25);
+  }
+
+  a,
+  button,
+  summary,
+  .hero-preview-card-button,
+  .landing-card-link,
+  .dashboard-history-inline-button,
+  .dashboard-tab,
+  .dashboard-history-button,
+  .blur-pill,
+  .export-blur-button,
+  .guidelines-sticky-back,
+  .status-button {
+    -webkit-tap-highlight-color: transparent;
+  }
 }

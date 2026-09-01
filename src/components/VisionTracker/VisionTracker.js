@@ -87,6 +87,7 @@ const VisionTracker = () => {
   const [showRefinementPrompt, setShowRefinementPrompt] = useState(false);
   const [refinementDecision, setRefinementDecision] = useState('pending');
   const [isFirstDotDelayActive, setIsFirstDotDelayActive] = useState(false);
+  const [isTrackerMenuOpen, setIsTrackerMenuOpen] = useState(false);
   const [error, setError] = useState('');
   const [, setCameraPermissionStatus] = useState('unknown');
   const [gazePoint, setGazePoint] = useState({ x: window.innerWidth / 2, y: window.innerHeight / 2 });
@@ -305,6 +306,7 @@ const VisionTracker = () => {
     setClickCount(0);
     setShowRefinementPrompt(false);
     setRefinementDecision('pending');
+    setIsTrackerMenuOpen(false);
     setTrackerPhase(TRACKER_PHASES.CALIBRATION);
     setIsDarkeningCalibration(false);
     startFirstDotDelay();
@@ -463,6 +465,7 @@ const VisionTracker = () => {
     setShowRefinementPrompt(false);
     setRefinementDecision('pending');
     clearFirstDotDelay();
+    setIsTrackerMenuOpen(false);
   };
 
   const startCalibrationPhase = () => {
@@ -481,6 +484,7 @@ const VisionTracker = () => {
     setShowFaceLockTips(false);
     setShowRefinementPrompt(false);
     setRefinementDecision('pending');
+    setIsTrackerMenuOpen(false);
     startFirstDotDelay();
   };
 
@@ -496,6 +500,7 @@ const VisionTracker = () => {
     setTrainingGoal(BASELINE_TRAINING_POINTS + EXTRA_REFINEMENT_POINTS);
     setShowRefinementPrompt(false);
     setRefinementDecision('accepted');
+    setIsTrackerMenuOpen(false);
     setTrackerPhase(TRACKER_PHASES.CALIBRATION);
     startCalibrationInputHint();
   };
@@ -503,6 +508,17 @@ const VisionTracker = () => {
   const skipRefinementRound = () => {
     clearAutoSelectTimer();
     setShowRefinementPrompt(false);
+    setIsTrackerMenuOpen(false);
+  };
+
+  const openTipsFromMenu = () => {
+    setShowFaceLockTips(true);
+    setIsTrackerMenuOpen(false);
+  };
+
+  const openRefinementPromptFromMenu = () => {
+    setShowRefinementPrompt(true);
+    setIsTrackerMenuOpen(false);
   };
 
   const activePoint = trainingPoints[Math.min(clickCount, trainingGoal - 1)];
@@ -572,7 +588,7 @@ const VisionTracker = () => {
     return (
       <section className="vision-tracker-inline">
         <div className="visage-consent-panel">
-          <h1>Start Gaze Tracker</h1>
+          <h1>Gaze Tracker</h1>
           <ul className="visage-consent-points">
             <li><strong>Step 1:</strong> Start calibration</li>
             <li><strong>Step 2:</strong> Complete 25 blue-dot inputs</li>
@@ -598,43 +614,53 @@ const VisionTracker = () => {
       <video ref={videoRef} className={isFaceLockPhase ? 'visage-background-video visage-face-lock-video' : 'visage-background-video'} autoPlay muted playsInline />
       <div className={isFaceLockPhase ? 'visage-head-guide visage-head-guide-face-lock' : 'visage-head-guide'} aria-hidden="true"></div>
 
-      <button className="visage-exit-button" onClick={handleExit} type="button">
-        Exit
-      </button>
-
       {!isConsentPhase && (
-        <div className="visage-screen-controls">
-          <div className="visage-tips-controls">
+        <>
+          <button
+            className={isTrackerMenuOpen ? 'visage-menu-toggle visage-menu-toggle-open' : 'visage-menu-toggle'}
+            onClick={() => setIsTrackerMenuOpen((isOpen) => !isOpen)}
+            type="button"
+            aria-label={isTrackerMenuOpen ? 'Close tracker menu' : 'Open tracker menu'}
+            aria-expanded={isTrackerMenuOpen}
+          >
+            <span></span>
+            <span></span>
+            <span></span>
+          </button>
+          <div className={isTrackerMenuOpen ? 'visage-menu-backdrop visage-menu-backdrop-open' : 'visage-menu-backdrop'} onClick={() => setIsTrackerMenuOpen(false)} aria-hidden="true"></div>
+            <nav className={isTrackerMenuOpen ? 'visage-side-menu visage-side-menu-open' : 'visage-side-menu'} aria-label="Gaze tracker menu">
+            <div className="visage-side-menu-header">
+              <strong>Gaze Tracker</strong>
+            </div>
             <button
-              className={showFaceLockTips ? 'visage-tips-button visage-tips-button-active' : 'visage-tips-button'}
-              onClick={() => setShowFaceLockTips(true)}
+              className={showFaceLockTips ? 'visage-menu-action visage-menu-action-active' : 'visage-menu-action'}
+              onClick={openTipsFromMenu}
               type="button"
             >
               Tips
             </button>
+            <button
+              className={isAutoSelectEnabled ? 'visage-menu-action visage-menu-action-blue' : 'visage-menu-action'}
+              onClick={toggleAutoSelect}
+              type="button"
+              aria-pressed={isAutoSelectEnabled}
+            >
+              Auto select {isAutoSelectEnabled ? 'On' : 'Off'}
+            </button>
             {shouldShowRefinementOption && (
               <button
-                className={showRefinementPrompt ? 'visage-optional-button visage-optional-button-active' : 'visage-optional-button'}
-                onClick={() => setShowRefinementPrompt(true)}
+                className={showRefinementPrompt ? 'visage-menu-action visage-menu-action-active' : 'visage-menu-action'}
+                onClick={openRefinementPromptFromMenu}
                 type="button"
               >
-                Optional
+                Refine Accuracy
               </button>
             )}
-          </div>
-          {!isFaceLockPhase && (
-            <div className="visage-select-controls">
-              <button
-                className={isAutoSelectEnabled ? 'visage-auto-select-button visage-auto-select-button-active' : 'visage-auto-select-button'}
-                onClick={toggleAutoSelect}
-                type="button"
-                aria-pressed={isAutoSelectEnabled}
-              >
-                Auto select {isAutoSelectEnabled ? 'On' : 'Off'}
-              </button>
-            </div>
-          )}
-        </div>
+            <button className="visage-menu-action visage-menu-action-exit" onClick={handleExit} type="button">
+              Exit
+            </button>
+          </nav>
+        </>
       )}
 
       {isFaceLockPhase && !showFaceLockTips && (
