@@ -575,7 +575,7 @@ const VisionTracker = () => {
           <h1>Start Gaze Tracker</h1>
           <ul className="visage-consent-points">
             <li><strong>Step 1:</strong> Start calibration</li>
-            <li><strong>Step 2:</strong> Click 25 calibration dots</li>
+            <li><strong>Step 2:</strong> Complete 25 blue-dot inputs</li>
             <li><strong>Step 3:</strong> Live gaze tracking starts</li>
           </ul>
           <p className="visage-consent-note">Optional: after calibration, you can add 15 extra inputs to refine accuracy.</p>
@@ -670,8 +670,8 @@ const VisionTracker = () => {
             <ul className="visage-calibration-rules">
               <li>Align your face inside the green guide oval.</li>
               <li>Keep your head still; move only your eyes.</li>
-              <li className="vision-desktop-tip">Look at each blue dot and click it with your mouse for best accuracy. Press <span>B</span> only if needed.</li>
-              <li className="vision-mobile-tip">Look at each blue dot and tap it once, or use Auto select so dots are selected after a short pause.</li>
+              <li className="vision-desktop-tip">Press <span>B</span> for each blue dot, or turn on Auto select to select dots automatically after a short pause.</li>
+              <li className="vision-mobile-tip">Use Auto select to select each blue dot automatically after a short pause.</li>
               <li>Ensure steady front lighting; avoid glare on glasses or the webcam lens for best accuracy.</li>
               <li>Tracking starts after 25 dots. Extra points are optional.</li>
             </ul>

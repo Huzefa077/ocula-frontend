@@ -873,6 +873,18 @@ button {
   grid-template-columns: repeat(auto-fit, minmax(8.5rem, 1fr));
 }
 
+.analysis-disclaimer {
+  margin: 0;
+  padding: 0.75rem 0.9rem;
+  border: 1px solid rgba(255, 228, 110, 0.2);
+  border-radius: 14px;
+  background: rgba(255, 228, 110, 0.07);
+  color: rgba(255, 251, 234, 0.7);
+  font-size: 0.85rem;
+  font-weight: 700;
+  line-height: 1.45;
+}
+
 .blur-pill {
   border: 1px solid rgba(255, 255, 255, 0.14);
   border-radius: 999px;

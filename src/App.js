@@ -1104,6 +1104,10 @@ class App extends Component {
                         )}
                       </div>
 
+                      <p className="analysis-disclaimer">
+                        AI results are estimates and can be wrong. Age, gender, and emotion predictions depend on image quality, lighting, face angle, and model limitations.
+                      </p>
+
                       <section className="privacy-blur-card">
                         <div>
                           <span className="telemetry-label">Selective Privacy Blur</span>
