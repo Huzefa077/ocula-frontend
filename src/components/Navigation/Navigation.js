@@ -79,6 +79,9 @@ const Navigation = ({
 
     const renderActionNavigation = (attachUserMenuRef = true) => isDashboardArea ? (
       <>
+        <button onClick={() => goToRoute('guidelines')} className="navigation-back-button navigation-guide-button" type="button">
+          User Guide
+        </button>
         {showBackToHome && (
           <button onClick={() => goToRoute('landing')} className="navigation-back-button" type="button">
             Homepage

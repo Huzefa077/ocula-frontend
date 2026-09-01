@@ -627,6 +627,12 @@ class App extends Component {
     }
   };
 
+  scrollPageToTop = () => {
+    window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+    document.documentElement.scrollTop = 0;
+    document.body.scrollTop = 0;
+  };
+
   handleRouteChange = (route) => {
     if (route === 'signout') {
       const nextRoute = this.state.isGuest ? 'landing' : 'signin';
@@ -703,7 +709,7 @@ class App extends Component {
       activeDashboardTab,
       route: prevState.isSignedIn || prevState.isGuest ? 'home' : 'signin',
       previousRoute: prevState.route
-    }));
+    }), this.scrollPageToTop);
   };
 
   openDashboardTool = (activeDashboardTab) => {
@@ -712,7 +718,7 @@ class App extends Component {
         activeDashboardTab,
         route: 'home',
         previousRoute: prevState.route
-      }));
+      }), this.scrollPageToTop);
       return;
     }
 
@@ -785,6 +791,21 @@ class App extends Component {
     const canViewUsers = userPermissions.includes('view_users') || user.role === 'admin';
     const showBackendStatusBanner = backendStatus === 'missing-config' || (backendStatus === 'retrying' && healthFailureCount >= 2);
     const showStatusLoader = backendStatus === 'checking' || backendStatus === 'retrying';
+    const dashboardUtilityStrip = (
+      <div className="dashboard-rank-strip dashboard-rank-strip-compact">
+        <button className="dashboard-history-inline-button" onClick={this.openScanHistory} type="button">
+          View History
+        </button>
+        {isGuest ? (
+          <div className="rank-card">
+            <span className="rank-label">Session</span>
+            <strong className="rank-value rank-value-small">Guest Demo</strong>
+          </div>
+        ) : (
+          <Rank entries={user.entries} />
+        )}
+      </div>
+    );
     const statusTitle = backendStatus === 'connected'
       ? 'Backend connected'
       : backendStatus === 'retrying'
@@ -846,7 +867,6 @@ class App extends Component {
           userName={user.name || 'Guest'}
           activeDashboardTab={activeDashboardTab}
           onDashboardTabChange={this.handleDashboardTabChange}
-          onOpenHistory={this.openScanHistory}
           onGuestMode={this.handleGuestMode}
           onBackNavigation={this.handleBackNavigation}
           onRouteChange={this.handleRouteChange}
@@ -1025,23 +1045,6 @@ class App extends Component {
                 </section>
               )}
 
-              <div className="dashboard-rank-strip">
-                <button className="dashboard-history-inline-button" onClick={this.openScanHistory} type="button">
-                  View History
-                </button>
-                <button className="dashboard-history-inline-button" onClick={() => this.handleRouteChange('guidelines')} type="button">
-                  User Guide
-                </button>
-                {isGuest ? (
-                  <div className="rank-card">
-                    <span className="rank-label">Session</span>
-                    <strong className="rank-value rank-value-small">Guest Demo</strong>
-                  </div>
-                ) : (
-                  <Rank entries={user.entries} />
-                )}
-              </div>
-
               {activeDashboardTab === 'photo' ? (
                 <>
                   <section className="dashboard-grid">
@@ -1144,6 +1147,7 @@ class App extends Component {
                           Export Anonymized Image
                         </button>
                       </section>
+                      {dashboardUtilityStrip}
                     </aside>
                   </section>
                 </>
