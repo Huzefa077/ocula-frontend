@@ -3,6 +3,7 @@ import { GOOGLE_CLIENT_ID, isGoogleSignInConfigured } from '../../config';
 
 let googleScriptPromise = null;
 
+// Load Google's Identity Services script only once, even if sign-in/register both render this button.
 function loadGoogleScript() {
   if (window.google?.accounts?.id) {
     return Promise.resolve(window.google);
@@ -30,6 +31,7 @@ const GoogleSignInButton = ({ onCredential, disabled }) => {
   useEffect(() => {
     if (!isGoogleSignInConfigured || disabled) return;
 
+    // cancelled prevents Google script callbacks from rendering into an unmounted component.
     let cancelled = false;
 
     loadGoogleScript()
@@ -38,6 +40,7 @@ const GoogleSignInButton = ({ onCredential, disabled }) => {
 
         google.accounts.id.initialize({
           client_id: GOOGLE_CLIENT_ID,
+          // Pass only the Google ID token upward; parent forms decide whether this is sign-in or register.
           callback: (response) => onCredential(response.credential)
         });
 
@@ -53,6 +56,7 @@ const GoogleSignInButton = ({ onCredential, disabled }) => {
     return () => {
       cancelled = true;
     };
+    // onCredential is included so React re-initializes the Google callback if the parent handler changes.
   }, [disabled, onCredential]);
 
   if (!isGoogleSignInConfigured) {

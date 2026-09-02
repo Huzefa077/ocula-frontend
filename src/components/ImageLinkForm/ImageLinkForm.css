@@ -24,6 +24,7 @@
   letter-spacing: 0.02em;
 }
 
+/* Main toolbar: URL input, hidden file input trigger, detect/clear/upload/cancel buttons. */
 .form {
   width: 100%;
   background: rgba(255, 255, 255, 0.06);
@@ -103,6 +104,7 @@
   display: none;
 }
 
+/* Optional URL-copy tips shown only when the UI chooses to render this panel. */
 .image-tips-toggle {
   width: max-content;
   align-self: center;
@@ -143,7 +145,7 @@
   border: 1px solid rgba(255, 255, 255, 0.18) !important;
 }
 
-/* Mobile adjustments */
+/* Mobile stacks every toolbar control so the preview can sit above the form comfortably. */
 @media (max-width: 760px) {
   .image-link-form-wrapper {
     transform: none;
@@ -182,6 +184,7 @@
 }
 
 button:disabled {
+  /* Disabled controls stay visible but make it clear the current scan must finish first. */
   opacity: 0.7;
   cursor: not-allowed;
   background-color: #888 !important;

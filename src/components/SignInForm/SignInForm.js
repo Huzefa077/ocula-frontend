@@ -16,12 +16,14 @@ const SignInForm = ({ onRouteChange, loadUser, onGuestMode }) => {
   const [canResendVerification, setCanResendVerification] = useState(false);
 
   const completeSignIn = (data) => {
+    // Store the JWT first, then App can load protected user/history data.
     storeAuthToken(data.token);
     loadUser(data.user);
     onRouteChange('home');
   };
 
   const handleSignIn = async () => {
+    // Validate before calling the backend so users get instant feedback for simple mistakes.
     if (!email.trim() || !password.trim()) {
       setError('* All fields are required');
       return;
@@ -42,6 +44,7 @@ const SignInForm = ({ onRouteChange, loadUser, onGuestMode }) => {
     setCanResendVerification(false);
     setIsLoading(true);
 
+    // Free backend hosting can be asleep; this message explains a slow first request.
     const slowServerTimer = setTimeout(() => {
       setStatusMessage('Server waking up, please wait...');
     }, 3000);
@@ -64,6 +67,7 @@ const SignInForm = ({ onRouteChange, loadUser, onGuestMode }) => {
   };
 
   const handleGoogleCredential = async (credential) => {
+    // Google gives the browser a credential; the backend verifies it before trusting the user.
     if (!isApiConfigured) {
       setError('App configuration is missing the backend API URL.');
       return;
@@ -85,6 +89,7 @@ const SignInForm = ({ onRouteChange, loadUser, onGuestMode }) => {
   };
 
   const handleResendVerification = async () => {
+    // Resending needs a valid email because the user may not be signed in yet.
     if (!isValidEmail(email.trim())) {
       setError('Enter your email first, then resend verification.');
       return;
@@ -105,7 +110,7 @@ const SignInForm = ({ onRouteChange, loadUser, onGuestMode }) => {
   };
 
   return (
-    <article className="auth-card">
+    <article className="surface-card auth-card">
       <main className="auth-main">
         <p className="auth-kicker">Ocula face analysis</p>
         <h1 className="auth-title">Sign in</h1>
@@ -133,7 +138,7 @@ const SignInForm = ({ onRouteChange, loadUser, onGuestMode }) => {
             </div>
           </fieldset>
 
-          <button className="auth-primary-button" type="button" onClick={handleSignIn} disabled={isLoading} aria-busy={isLoading}>
+          <button className="button-primary auth-primary-button" type="button" onClick={handleSignIn} disabled={isLoading} aria-busy={isLoading}>
             {isLoading && <span className="auth-button-spinner" aria-hidden="true"></span>}
             {isLoading ? 'Signing in...' : 'Sign in'}
           </button>
@@ -142,7 +147,7 @@ const SignInForm = ({ onRouteChange, loadUser, onGuestMode }) => {
 
           <GoogleSignInButton onCredential={handleGoogleCredential} disabled={isLoading} />
 
-          <button className="auth-secondary-button" type="button" onClick={() => onGuestMode()} disabled={isLoading}>
+          <button className="button-muted auth-secondary-button" type="button" onClick={() => onGuestMode()} disabled={isLoading}>
             Continue as guest
           </button>
 

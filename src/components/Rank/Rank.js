@@ -4,7 +4,7 @@ import './Rank.css';
 
 const Rank = ({ entries = 0 }) => {  // default 0
   return (
-    <div className="rank-card">
+    <div className="surface-card rank-card">
       <span className="rank-label">Images scanned</span>
       <strong className="rank-value">{entries}</strong>
     </div>

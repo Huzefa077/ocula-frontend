@@ -9,6 +9,7 @@ const VerifyEmail = ({ loadUser, onRouteChange }) => {
   const [error, setError] = useState('');
 
   useEffect(() => {
+    // Verification links carry both values in the URL, so this page reads them on first load.
     const params = new URLSearchParams(window.location.search);
     const email = params.get('email');
     const token = params.get('token');
@@ -29,6 +30,7 @@ const VerifyEmail = ({ loadUser, onRouteChange }) => {
         storeAuthToken(response.data.token);
         loadUser(response.data.user);
         setMessage('Email verified. Taking you to Ocula...');
+        // Small delay lets the success message appear before the dashboard route replaces this screen.
         setTimeout(() => onRouteChange('home'), 700);
       } catch (err) {
         setError(err.response?.data || 'Unable to verify email.');
@@ -36,10 +38,11 @@ const VerifyEmail = ({ loadUser, onRouteChange }) => {
     }
 
     verifyEmail();
+    // loadUser/onRouteChange are included because they come from App and are used inside the effect.
   }, [loadUser, onRouteChange]);
 
   return (
-    <article className="auth-card">
+    <article className="surface-card auth-card">
       <main className="auth-main">
         <p className="auth-kicker">Ocula secure link</p>
         <h1 className="auth-title">Email verification</h1>

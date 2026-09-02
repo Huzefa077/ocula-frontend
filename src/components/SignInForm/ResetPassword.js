@@ -42,7 +42,7 @@ const ResetPassword = ({ onRouteChange }) => {
   };
 
   return (
-    <article className="auth-card">
+    <article className="surface-card auth-card">
       <main className="auth-main">
         <p className="auth-kicker">Ocula secure link</p>
         <h1 className="auth-title">Choose a new password</h1>
@@ -53,7 +53,7 @@ const ResetPassword = ({ onRouteChange }) => {
         <label className="auth-label">New password</label>
         <input className="auth-input" type="password" value={password} onChange={(e) => setPassword(e.target.value)} disabled={isLoading} />
 
-        <button className="auth-primary-button" onClick={handleReset} disabled={isLoading}>
+        <button className="button-primary auth-primary-button" onClick={handleReset} disabled={isLoading}>
           {isLoading ? 'Resetting...' : 'Reset password'}
         </button>
 

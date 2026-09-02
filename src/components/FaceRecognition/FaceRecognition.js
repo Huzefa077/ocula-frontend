@@ -38,6 +38,7 @@ function loadFaceApiScript() {
 class FaceRecognition extends Component {
   constructor(props) {
     super(props);
+    // Refs give the detector direct access to the rendered image and overlay canvas.
     this.imageRef = React.createRef();
     this.canvasRef = React.createRef();
     this.state = {
@@ -46,6 +47,7 @@ class FaceRecognition extends Component {
       displayImageUrl: props.imageUrl || '',
       usingProxy: false
     };
+    // These instance fields do not affect rendering, so keeping them out of state avoids extra renders.
     this.isProcessing = false;
     this.resizeObserver = null;
     this.modelsLoaded = false;
@@ -56,6 +58,7 @@ class FaceRecognition extends Component {
 
   async componentDidMount() {
     await this.loadModels();
+    // App owns the export button, but this component owns the canvas export logic.
     this.props.onExportReady?.(this.exportAnonymizedImage);
 
     if (this.imageRef.current?.complete && this.props.imageUrl) {
@@ -63,6 +66,7 @@ class FaceRecognition extends Component {
     }
 
     this.resizeObserver = new ResizeObserver(() => {
+      // Re-run detection after layout changes because face boxes are drawn in displayed pixel coordinates.
       if (this.modelsLoaded && this.imageRef.current) {
         this.detectFaces();
       }
@@ -79,6 +83,7 @@ class FaceRecognition extends Component {
 
     try {
       if (!faceApiModelsPromise) {
+        // Store one shared promise so multiple component mounts wait for the same model download.
         faceApiModelsPromise = loadFaceApiScript().then(async (faceapi) => {
           // Cache model loading so sign-out/sign-in does not download the same models again.
           await Promise.all([
@@ -111,6 +116,7 @@ class FaceRecognition extends Component {
     }
 
     if (prevProps.imageUrl !== this.props.imageUrl && this.props.imageUrl) {
+      // A new image should start clean, even if the previous image had boxes or used the proxy fallback.
       this.latestFaceBoxes = [];
       this.setState({
         faceSummaries: [],
@@ -125,6 +131,7 @@ class FaceRecognition extends Component {
     }
 
     if (prevProps.blurredFaceIds !== this.props.blurredFaceIds) {
+      // Blur selection changes only require redrawing the canvas, not re-running face detection.
       this.drawFaceOverlay();
     }
   }
@@ -136,6 +143,7 @@ class FaceRecognition extends Component {
   }
 
   getTopExpression = (expressions = {}) => (
+    // face-api returns confidence scores for many expressions; show the highest one in the UI.
     Object.entries(expressions).reduce(
       (best, current) => (current[1] > best[1] ? current : best),
       ['unknown', 0]
@@ -231,6 +239,7 @@ class FaceRecognition extends Component {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     const selectedBlurIds = this.getSelectedBlurIds();
+    // Draw blur patches first, then draw labels/boxes on top so the face numbers remain readable.
     this.latestFaceBoxes.forEach((face) => {
       if (selectedBlurIds.has(face.id)) {
         this.drawBlurPatch(ctx, img, face);
@@ -247,6 +256,7 @@ class FaceRecognition extends Component {
     const selectedBlurIds = this.getSelectedBlurIds();
     if (!selectedBlurIds.size) return false;
 
+    // Export uses the original image resolution so the downloaded file is not limited to preview size.
     const outputCanvas = document.createElement('canvas');
     outputCanvas.width = img.naturalWidth;
     outputCanvas.height = img.naturalHeight;
@@ -285,6 +295,7 @@ class FaceRecognition extends Component {
   };
 
   detectFaces = async () => {
+    // Prevent overlapping scans when image load, resize, or state changes happen close together.
     if (this.isProcessing || !this.modelsLoaded) return;
 
     const img = this.imageRef.current;
@@ -308,6 +319,7 @@ class FaceRecognition extends Component {
         .withFaceExpressions()
         .withAgeAndGender();
 
+      // Start with a faster detector size, then retry with stronger settings only if no face is found.
       let detectionInput = img;
       let detections = await detectWithOptions(detectionInput, 416, 0.32);
 
@@ -321,6 +333,7 @@ class FaceRecognition extends Component {
         const enhancedInput = this.createEnhancedImageCanvas(img);
 
         if (enhancedInput) {
+          // The enhanced canvas is only a detection fallback; the displayed image stays original.
           detectionInput = enhancedInput;
           detections = await detectWithOptions(detectionInput, 608, 0.25);
         }
@@ -396,6 +409,7 @@ class FaceRecognition extends Component {
     const { imageUrl } = this.props;
 
     if (!this.state.usingProxy && isApiConfigured && /^https?:\/\//i.test(imageUrl)) {
+      // Some hosts block direct browser image loading, so the backend proxy gets one retry chance.
       this.setState({
         displayImageUrl: `${API_URL}/image-proxy?url=${encodeURIComponent(imageUrl)}`,
         usingProxy: true

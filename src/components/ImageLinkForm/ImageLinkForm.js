@@ -23,6 +23,7 @@ const ImageLinkForm = ({
   const readImageFile = (file) => {
     if (!file) return;
 
+    // Uploaded files are read locally as data URLs, which keeps the scan browser-side.
     if (!file.type.startsWith('image/')) {
       setFileError('Please upload an image file.');
       return;
@@ -39,11 +40,13 @@ const ImageLinkForm = ({
 
   const handleFileChange = (event) => {
     readImageFile(event.target.files?.[0]);
+    // Reset the hidden input so choosing the same file again still fires onChange.
     event.target.value = '';
   };
 
   const handleDrop = (event) => {
     event.preventDefault();
+    // Do not accept a new file while the current scan is still running.
     if (isDetecting) return;
     readImageFile(event.dataTransfer.files?.[0]);
   };
@@ -53,6 +56,7 @@ const ImageLinkForm = ({
   };
 
   const handleUrlKeyDown = (event) => {
+    // Enter should behave like the Detect Faces button only when the URL is valid.
     if (event.key !== 'Enter' || isDetecting || !canSubmit) return;
 
     event.preventDefault();
@@ -81,7 +85,7 @@ const ImageLinkForm = ({
             disabled={isDetecting}
           />
           <button
-            className="image-detect-button"
+            className="button-primary image-detect-button"
             onClick={onButtonSubmit}
             disabled={isDetecting || !canSubmit}
             type="button"
@@ -90,7 +94,7 @@ const ImageLinkForm = ({
           </button>
           {hasInput && !isDetecting && (
             <button
-              className="image-clear-button"
+              className="button-muted image-clear-button"
               onClick={onClearInput}
               type="button"
             >
@@ -98,7 +102,7 @@ const ImageLinkForm = ({
             </button>
           )}
           <button
-            className="image-upload-button"
+            className="button-muted image-upload-button"
             onClick={() => fileInputRef.current?.click()}
             disabled={isDetecting}
             type="button"
@@ -107,7 +111,7 @@ const ImageLinkForm = ({
           </button>
           {isDetecting && (
             <button
-              className="image-link-form-cancel"
+              className="button-muted image-link-form-cancel"
               onClick={onCancelDetect}
               type="button"
             >

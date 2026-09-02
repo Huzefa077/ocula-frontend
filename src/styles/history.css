@@ -1,0 +1,131 @@
+/* Scan history modal/drawer shown above the dashboard. */
+/* Scan history modal/drawer shown above the dashboard. */
+.history-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  background: rgba(2, 6, 23, 0.48);
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
+}
+
+.history-drawer {
+  width: min(92vw, 44rem);
+  max-height: min(76vh, 34rem);
+  overflow: auto;
+  padding: 1rem;
+  border-radius: 24px;
+  background: rgba(15, 23, 42, 0.92);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.42);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  color: #fffbea;
+}
+
+.history-drawer-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  text-align: left;
+}
+
+.history-drawer-header h2 {
+  margin: 0.2rem 0 0;
+}
+
+.history-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.history-close-button,
+.history-clear-button,
+.history-delete-button {
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  color: #fffbea;
+  cursor: pointer;
+  font-weight: 800;
+}
+
+.history-clear-button {
+  color: #ffd8a8;
+}
+
+.history-delete-button {
+  justify-self: end;
+  color: #ffb4a9;
+  font-size: 0.85rem;
+  padding: 0.4rem 0.7rem;
+}
+
+.history-clear-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+.history-empty {
+  margin: 1rem 0 0;
+  color: rgba(255, 251, 234, 0.72);
+}
+
+.history-list {
+  display: grid;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+.history-item {
+  display: grid;
+  grid-template-columns: 4.5rem 1fr auto;
+  align-items: center;
+  gap: 0.8rem;
+  padding: 0.75rem;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  text-align: left;
+}
+
+.history-item img,
+.history-thumbnail-placeholder {
+  width: 4.5rem;
+  height: 3.5rem;
+  border-radius: 12px;
+}
+
+.history-item img {
+  object-fit: cover;
+}
+
+.history-thumbnail-placeholder {
+  display: grid;
+  place-items: center;
+  background: rgba(0, 210, 255, 0.1);
+  border: 1px solid rgba(0, 210, 255, 0.22);
+  color: rgba(165, 243, 252, 0.82);
+  font-size: 0.68rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.history-item strong {
+  color: #00d2ff;
+}
+
+.history-item p {
+  margin: 0.25rem 0 0;
+  color: rgba(255, 251, 234, 0.68);
+}
+
+.about-drawer {
+  max-width: 52rem;
+}

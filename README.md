@@ -1,6 +1,6 @@
-# Ocula Vision Lab Frontend
+# Ocula Frontend
 
-React frontend for **Ocula Vision Lab**, a browser-based demo for face analysis, selective privacy blur, and experimental gaze tracking. Users can sign in, upload a photo or paste a direct image URL, detect faces, review estimated age/gender/emotion details, blur selected identities, and export an anonymized image. The app also includes a webcam-based Gaze Tracker that runs locally in the browser after user permission.
+React frontend for **Ocula**, a browser-based demo for face analysis and selective privacy blur. Users can sign in, upload a photo or paste a direct image URL, detect faces, review estimated age/gender/emotion details, blur selected identities, and export an anonymized image.
 
 This frontend was built as a learning-focused React project with real app concerns: API configuration, authentication state, protected backend calls, loading states, face detection models, and deployment on Vercel.
 
@@ -24,7 +24,6 @@ This frontend was built as a learning-focused React project with real app concer
 - Face detail display for detected faces (age, gender, emotion)
 - Selective per-face blurring with anonymized image export
 - Session scan history
-- Experimental webcam gaze tracker with calibration flow
 - In-app user guide
 - Scan count updates for signed-in users
 - Backend availability checks and retry messages
@@ -138,14 +137,12 @@ This project helped me practice:
 - Sending JWT tokens in request headers
 - Handling loading, success, and error states in the UI
 - Using local face detection models in the browser
-- Improving webcam gaze calibration with repeated samples and randomized calibration points
 - Deploying a React app with environment variables on Vercel
 
 ## Notes
 
 - Face detection runs in the browser using model files stored in `public/models`.
 - Age, gender, and expression results are estimates from the model and may not always be accurate.
-- Gaze Tracker is experimental. Accuracy depends heavily on lighting, webcam quality, face position, still head posture, and careful calibration clicks.
 - The admin panel appears only when the signed-in user has an admin role from the backend token/user profile.
 
 ## Related Project

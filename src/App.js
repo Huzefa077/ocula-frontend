@@ -9,8 +9,8 @@ import ResetPassword from './components/SignInForm/ResetPassword';
 import VerifyEmail from './components/SignInForm/VerifyEmail';
 import Register from './components/Register/Register';
 import ImageLinkForm from './components/ImageLinkForm/ImageLinkForm';
-import FaceMeshOverlay from './components/FaceMeshOverlay/FaceMeshOverlay';
-import VisionTracker from './components/VisionTracker/VisionTracker';
+import LandingPage from './components/LandingPage/LandingPage';
+import HistoryDrawer from './components/HistoryDrawer/HistoryDrawer';
 import Rank from './components/Rank/Rank';
 import AdminPanel from './components/AdminPanel/AdminPanel';
 import { API_URL, isApiConfigured, isMaintenanceBlocking, isMaintenanceNotice, maintenanceConfig } from './config';
@@ -24,6 +24,10 @@ import {
   isGuestModeEnabled,
   storeAuthUser
 } from './utils/auth';
+import './styles/landing.css';
+import './styles/status.css';
+import './styles/dashboard.css';
+import './styles/history.css';
 import './App.css';
 
 const HEALTH_CHECK_TIMEOUT_MS = 70000;
@@ -47,6 +51,7 @@ function createHistoryTimestamp(value) {
   return Number.isNaN(date.getTime()) ? new Date().toLocaleString() : date.toLocaleString();
 }
 
+// Convert the backend scan-history shape into the same shape the dashboard uses locally.
 function mapPersistedScanHistoryItem(scan) {
   return {
     id: scan.id,
@@ -66,9 +71,11 @@ function isAuthExpiredError(error) {
   const status = error?.response?.status;
   const message = String(error?.response?.data || '').toLowerCase();
 
+  // The backend can signal an expired session either with HTTP 401 or with this text.
   return status === 401 || message.includes('invalid or expired token');
 }
 
+// Email reset and verification links open special routes directly from the URL.
 function getInitialRouteFromUrl() {
   if (window.location.pathname === '/verify-email') return 'verify-email';
   if (window.location.pathname === '/reset-password') return 'reset-password';
@@ -81,6 +88,7 @@ class App extends Component {
     const initialRoute = getInitialRouteFromUrl();
     const storedAuthToken = getStoredAuthToken();
     const storedAuthUser = getStoredAuthUser();
+    // Only restore a saved session on the normal landing route. Auth callback routes must keep their own screen.
     const shouldRestoreSignedInUser = initialRoute === 'landing' && Boolean(storedAuthToken && storedAuthUser?.id);
     const shouldRestoreGuest = initialRoute === 'landing' && !shouldRestoreSignedInUser && isGuestModeEnabled();
     // Stores the current backend health-check request so we can cancel it if a newer check starts.
@@ -99,7 +107,6 @@ class App extends Component {
       detectStatusMessage: '',
       isDetecting: false,
       scanSessionId: 0,
-      activeDashboardTab: 'photo',
       photoFaceSummaries: [],
       photoFaceBoxes: [],
       photoProcessingTimeMs: 0,
@@ -127,12 +134,14 @@ class App extends Component {
 
   componentDidMount() {
     this.setState({ init: true });
+    // Blocking maintenance mode intentionally skips backend checks because users cannot use the app anyway.
     if (isMaintenanceBlocking) return;
 
     this.checkBackendAvailability();
   }
 
   componentWillUnmount() {
+    // Clear every app-level timer/request so async callbacks do not update state after React removes the app.
     if (this.activeHealthCheckController) {
       // AbortController is the object. Calling .abort() is what actually cancels the pending request.
       this.activeHealthCheckController.abort();
@@ -154,6 +163,7 @@ class App extends Component {
   startRetryCountdown = (failureCount) => {
     let secondsLeft = Math.ceil(HEALTH_RETRY_DELAY_MS / 1000);
 
+    // Restarting the countdown avoids two intervals fighting over the same banner text.
     if (this.healthRetryCountdownTimerId) {
       clearInterval(this.healthRetryCountdownTimerId);
     }
@@ -291,6 +301,7 @@ class App extends Component {
   };
 
   handleAuthExpired = () => {
+    // The scan may have succeeded locally, but a bad token means history cannot be trusted or saved.
     clearAuthSession();
     clearGuestMode();
     this.setState({
@@ -305,6 +316,7 @@ class App extends Component {
   };
 
   loadScanHistory = () => {
+    // Guests use temporary local state only; signed-in users load persistent history from the backend.
     if (!isApiConfigured || !this.state.user.id || this.state.isGuest) return;
 
     axios.get(`${API_URL}/scan-history`, {
@@ -328,6 +340,7 @@ class App extends Component {
   };
 
   saveScanHistoryItem = (historyItem) => {
+    // Uploaded images are data URLs, so we do not send the full image into history storage.
     if (!isApiConfigured || !this.state.user.id || this.state.isGuest) return;
 
     axios.post(`${API_URL}/scan-history`, {
@@ -364,6 +377,7 @@ class App extends Component {
   };
 
   openScanHistory = () => {
+    // Refresh from the backend when the drawer opens so a page reload shows saved scans.
     this.setState({ isHistoryOpen: true, route: 'home' }, () => {
       this.loadScanHistory();
     });
@@ -372,6 +386,7 @@ class App extends Component {
   handleImageInputChange = (event) => this.setState({ input: event.target.value });
 
   handleFileInput = (dataUrl) => {
+    // File uploads arrive as data URLs, which avoids CORS problems from external image hosts.
     this.setState({
       input: dataUrl,
       detectMessage: '',
@@ -436,6 +451,7 @@ class App extends Component {
   };
 
   handleDetectStart = () => {
+    // FaceRecognition calls this after the image has loaded and model detection is about to begin.
     this.setState({
       isDetecting: true,
       detectMessage: '',
@@ -505,6 +521,7 @@ class App extends Component {
   };
 
   handleDetectFail = (msg) => {
+    // A failed scan clears old face results so stale boxes/cards do not remain on screen.
     this.setState({
       detectMessage: msg ? msg : '',
       detectStatusMessage: '',
@@ -519,6 +536,7 @@ class App extends Component {
     let historyItemToSave = null;
 
     this.setState((prevState) => {
+      // The scanSessionId guard prevents duplicate history entries for the same rendered image.
       const shouldAddHistory = faceSummaries.length > 0 && prevState.imageUrl;
       const alreadySaved = prevState.scanHistory[0]?.scanSessionId === prevState.scanSessionId;
       const sourceType = isRemoteImageUrl(prevState.imageUrl) ? 'url' : 'upload';
@@ -557,6 +575,7 @@ class App extends Component {
   };
 
   handleDeleteHistoryItem = (scanId) => {
+    // Optimistically remove the row from the UI first; persisted scans are then deleted from the server.
     this.setState((prevState) => ({
       scanHistory: prevState.scanHistory.filter((scan) => scan.id !== scanId)
     }));
@@ -576,6 +595,7 @@ class App extends Component {
   };
 
   handleClearHistory = () => {
+    // Clearing history is immediate in the UI, then synced to the backend for signed-in users.
     this.setState({ scanHistory: [] });
 
     if (!isApiConfigured || !this.state.user.id || this.state.isGuest) return;
@@ -593,10 +613,12 @@ class App extends Component {
   };
 
   handleExportReady = (exportAnonymizedImage) => {
+    // FaceRecognition owns canvas export details; App only stores the callback for the export button.
     this.setState({ exportAnonymizedImage });
   };
 
   toggleFaceBlur = (faceId) => {
+    // Each face card toggles whether that one detected face should be blurred in the export.
     this.setState((prevState) => {
       const blurredFaceIds = prevState.blurredFaceIds.includes(faceId)
         ? prevState.blurredFaceIds.filter((id) => id !== faceId)
@@ -607,6 +629,7 @@ class App extends Component {
   };
 
   toggleBlurAllFaces = () => {
+    // The bulk toggle selects every detected face, or clears the selection if all are already selected.
     this.setState((prevState) => {
       const allFaceIds = prevState.photoFaceSummaries.map((face) => face.id);
       const allSelected = allFaceIds.length > 0 && allFaceIds.every((id) => prevState.blurredFaceIds.includes(id));
@@ -618,6 +641,7 @@ class App extends Component {
   };
 
   handleAnonymizedExport = () => {
+    // The export function returns false when there are no selected faces or no drawable result yet.
     const didExport = this.state.exportAnonymizedImage?.();
     if (!didExport) {
       this.setState({
@@ -628,12 +652,14 @@ class App extends Component {
   };
 
   scrollPageToTop = () => {
+    // Mobile users often switch dashboard tabs while scrolled down, so reset to the new tool's top.
     window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
     document.documentElement.scrollTop = 0;
     document.body.scrollTop = 0;
   };
 
   handleRouteChange = (route) => {
+    // This app uses simple state-based routing instead of React Router.
     if (route === 'signout') {
       const nextRoute = this.state.isGuest ? 'landing' : 'signin';
       clearAuthSession();
@@ -645,14 +671,15 @@ class App extends Component {
         route: nextRoute, previousRoute: this.state.route, isSignedIn: false, isGuest: false, user: { ...initialUser }
       });
     } else if (route === 'home') {
+      // Entering the dashboard should always land on the main photo tool first.
       this.setState((prevState) => ({
         route: prevState.isSignedIn || prevState.isGuest ? 'home' : 'signin',
         previousRoute: prevState.route,
-        activeDashboardTab: 'photo',
         isSignedIn: prevState.isSignedIn,
         isGuest: prevState.isGuest
       }));
     } else if (route === 'landing') {
+      // Returning to the public homepage clears any in-progress scan preview.
       this.setState({
         input: '',
         imageUrl: '',
@@ -668,6 +695,7 @@ class App extends Component {
   };
 
   handleBackNavigation = () => {
+    // The back button prefers the previous in-app screen, with a safe fallback for refreshed sessions.
     this.setState((prevState) => {
       const fallbackRoute = prevState.isSignedIn || prevState.isGuest ? 'home' : 'landing';
       const nextRoute = prevState.previousRoute && prevState.previousRoute !== prevState.route
@@ -681,7 +709,8 @@ class App extends Component {
     });
   };
 
-  handleGuestMode = (activeDashboardTab = 'photo') => {
+  handleGuestMode = () => {
+    // Guest mode deliberately avoids persisted auth/history while still allowing local feature demos.
     clearAuthSession();
     enableGuestMode();
     this.setState({
@@ -695,7 +724,6 @@ class App extends Component {
       blurredFaceIds: [],
       scanHistory: [],
       isHistoryOpen: false,
-      activeDashboardTab,
       route: 'home',
       previousRoute: this.state.route,
       isSignedIn: false,
@@ -704,59 +732,26 @@ class App extends Component {
     });
   };
 
-  handleDashboardTabChange = (activeDashboardTab) => {
+  handleDashboardTabChange = () => {
+    // The dashboard now has one tool, but the navbar still calls this to return to the dashboard safely.
     this.setState((prevState) => ({
-      activeDashboardTab,
       route: prevState.isSignedIn || prevState.isGuest ? 'home' : 'signin',
       previousRoute: prevState.route
     }), this.scrollPageToTop);
   };
 
-  openDashboardTool = (activeDashboardTab) => {
+  openDashboardTool = () => {
+    // Public homepage tool buttons open the dashboard for signed-in users or start a guest demo.
     if (this.state.isSignedIn || this.state.isGuest) {
       this.setState((prevState) => ({
-        activeDashboardTab,
         route: 'home',
         previousRoute: prevState.route
       }), this.scrollPageToTop);
       return;
     }
 
-    this.handleGuestMode(activeDashboardTab);
+    this.handleGuestMode();
   };
-
-  renderHeroPreview = (extraClassName = '') => (
-    <button
-      className={`hero-preview-card hero-preview-card-button ${extraClassName}`.trim()}
-      onClick={() => this.openDashboardTool('photo')}
-      type="button"
-      aria-label="Open Photo Scan and Blur"
-    >
-      <div className="hero-preview-toolbar">
-        <span className="hero-preview-dot"></span>
-        <span className="hero-preview-dot"></span>
-        <span className="hero-preview-dot"></span>
-      </div>
-      <div className="hero-preview-image-frame">
-        <img
-          className="hero-preview-image"
-          src={`${process.env.PUBLIC_URL}/images/model.png`}
-          alt="AI face analysis preview"
-        />
-        <div className="mesh-reveal-layer">
-          <FaceMeshOverlay />
-        </div>
-        <div className="hero-preview-scan-line scanner-bar" aria-hidden="true"></div>
-      </div>
-      <span className="hero-crosshair hero-crosshair-one"></span>
-      <span className="hero-crosshair hero-crosshair-two"></span>
-      <div className="hero-floating-tag hero-floating-tag-one">Age: ~27 | Neutral 96%</div>
-      <div className="hero-floating-tag hero-floating-tag-two">Privacy Blur: Ready</div>
-      <div className="hero-preview-footer">
-        <span>Face detected: 0.42s</span>
-      </div>
-    </button>
-  );
 
   render() {
     const {
@@ -782,7 +777,6 @@ class App extends Component {
       isHistoryOpen,
       photoProcessingTimeMs
     } = this.state;
-    const { activeDashboardTab } = this.state;
     const allFacesBlurred = photoFaceSummaries.length > 0 && photoFaceSummaries.every((face) => blurredFaceIds.includes(face.id));
     const detectedFaceCount = photoFaceBoxes.length || photoFaceSummaries.length;
     const firstName = (user.name || 'there').split(' ')[0];
@@ -793,11 +787,11 @@ class App extends Component {
     const showStatusLoader = backendStatus === 'checking' || backendStatus === 'retrying';
     const dashboardUtilityStrip = (
       <div className="dashboard-rank-strip dashboard-rank-strip-compact">
-        <button className="dashboard-history-inline-button" onClick={this.openScanHistory} type="button">
+        <button className="button-muted dashboard-history-inline-button" onClick={this.openScanHistory} type="button">
           View History
         </button>
         {isGuest ? (
-          <div className="rank-card">
+          <div className="surface-card rank-card">
             <span className="rank-label">Session</span>
             <strong className="rank-value rank-value-small">Guest Demo</strong>
           </div>
@@ -815,6 +809,7 @@ class App extends Component {
           : 'Starting Ocula';
     const maintenanceInstruction = maintenanceConfig.instruction.trim();
     const maintenanceRetryAfter = maintenanceConfig.retryAfter.trim();
+    // The footer is rendered after page content, so it appears naturally when users scroll down.
     const appFooter = (
       <footer className="landing-footer">
         <span>Copyright ©{new Date().getFullYear()} Ocula. All rights reserved.</span>
@@ -837,7 +832,7 @@ class App extends Component {
           )}
 
           <main className="maintenance-page">
-            <section className="maintenance-card maintenance-card-blocking">
+            <section className="surface-card maintenance-card maintenance-card-blocking">
               <p className="maintenance-kicker">Maintenance mode</p>
               <h1>{maintenanceConfig.title}</h1>
               <p>{maintenanceConfig.message}</p>
@@ -865,14 +860,13 @@ class App extends Component {
           isGuest={isGuest}
           route={route}
           userName={user.name || 'Guest'}
-          activeDashboardTab={activeDashboardTab}
-          onDashboardTabChange={this.handleDashboardTabChange}
           onGuestMode={this.handleGuestMode}
           onBackNavigation={this.handleBackNavigation}
           onRouteChange={this.handleRouteChange}
         />
 
         {isMaintenanceNotice && (
+          // Notice maintenance lets users continue while showing temporary instructions from config.
           <section className="maintenance-banner" role="status" aria-live="polite">
             <div className="maintenance-banner-content">
               <div>
@@ -886,6 +880,7 @@ class App extends Component {
         )}
 
         {showBackendStatusBanner && (
+          // The backend can sleep on free hosting, so this banner explains automatic retry behavior.
           <section className="status-banner">
             <div className="status-banner-content">
               <div className="status-banner-top">
@@ -909,146 +904,38 @@ class App extends Component {
         )}
 
         {route === 'landing' ? (
-          <main className="landing-page">
-            <section className="landing-hero">
-              <div className="landing-copy">
-                <p className="landing-kicker">Face analysis and gaze tracking</p>
-                <h1 className="landing-title">Face Detection, Privacy Blur & Gaze Tracking</h1>
-                {this.renderHeroPreview('hero-preview-card-mobile')}
-                <p className="landing-subtitle">
-                  Analyze faces in uploaded photos, blur selected identities, and test an experimental webcam gaze tracker that runs in the browser.
-                </p>
-                {(isSignedIn || isGuest) && (
-                  <div className="landing-return-message">
-                    <span>Hello,</span>
-                    <strong>{isGuest ? 'Guest' : firstName}</strong>
-                  </div>
-                )}
-                <div className="landing-actions">
-                  {(isSignedIn || isGuest) ? (
-                    <button className="landing-primary-button" onClick={() => this.handleRouteChange('home')} type="button">
-                      View Dashboard
-                    </button>
-                  ) : (
-                    <>
-                      <button className="landing-primary-button" onClick={this.handleGuestMode} type="button">
-                        Try Guest Demo
-                      </button>
-                      <button className="landing-secondary-button" onClick={() => this.handleRouteChange('signin')} type="button">
-                        Sign In
-                      </button>
-                      <button className="landing-link-button" onClick={() => this.handleRouteChange('register')} type="button">
-                        Register
-                      </button>
-                    </>
-                  )}
-                </div>
-                <div className="landing-stats">
-                  <span>Multi-Face Photo Scan</span>
-                  <span>Selective Blur Export</span>
-                  <span>Client-Side Vision Tools</span>
-                </div>
-              </div>
-              {this.renderHeroPreview('hero-preview-card-desktop')}
-            </section>
-
-            <section id="features" className="landing-section">
-              <p className="landing-section-kicker">Features</p>
-              <h2>Built for explainable visual AI demos</h2>
-              <div className="landing-bento-grid">
-                <article className="landing-bento-card">
-                  <span>01</span>
-                  <h3>Multi-Face Detection & Analysis</h3>
-                  <p>Upload a photo or paste an image link. Ocula finds every face in it and shows you each person's estimated age, gender, and emotion.</p>
-                  <button className="landing-card-link" onClick={() => this.openDashboardTool('photo')} type="button">
-                    Open Photo Scan
-                  </button>
-                </article>
-                <article className="landing-bento-card">
-                  <span>02</span>
-                  <h3>Blur Faces for Privacy</h3>
-                  <p>Choose which faces to blur — one, a few, or everyone — then download a safe copy of the photo to share.</p>
-                  <button className="landing-card-link" onClick={() => this.openDashboardTool('photo')} type="button">
-                    Open Blur Tool
-                  </button>
-                </article>
-                <article className="landing-bento-card">
-                  <span>03</span>
-                  <h3>Experimental Gaze Tracker</h3>
-                  <p>Use your webcam to see where you're looking on screen. Click through a series of dots to calibrate it, then watch a live dot follow your gaze in real time.</p>
-                  <button className="landing-card-link" onClick={() => this.openDashboardTool('tracker')} type="button">
-                    Open Gaze Tracker
-                  </button>
-                </article>
-              </div>
-            </section>
-
-            <section id="privacy" className="landing-section landing-privacy-showcase">
-              <article className="landing-architecture-card landing-privacy-copy-card">
-                <p className="landing-section-kicker">Privacy Engine</p>
-                <h2>Blur only the faces you choose</h2>
-                <p>Instead of blurring a whole photo, Ocula lets you pick exactly which faces to hide. That's useful for group photos, event pictures, or any image where only some people need their identity protected.</p>
-              </article>
-              <div className="privacy-preview-grid">
-                <div className="privacy-preview-card privacy-preview-before">Original scan</div>
-                <div className="privacy-preview-card privacy-preview-after">Selective blur ready</div>
-              </div>
-            </section>
-
-            <section id="gaze-tech" className="landing-section landing-architecture-card">
-              <p className="landing-section-kicker">Gaze Tracker</p>
-              <h2>Browser-based gaze calibration</h2>
-              <p>The tracker only starts after you allow fullscreen and camera access. You'll line up your face, then click through a series of dots so it can learn where your eyes are looking. After that, a small dot on screen follows your gaze in real time.</p>
-            </section>
-
-            <section id="faq" className="landing-section">
-              <p className="landing-section-kicker">Architecture & FAQ</p>
-              <h2>How Ocula works</h2>
-              <div className="faq-grid">
-                <article className="faq-card">
-                  <h3>Where does face processing happen?</h3>
-                  <p>All face detection and blurring happens right in your browser — your photo is never sent to a server for that part. The backend only handles things like logging in, your account, and loading images from other websites.</p>
-                </article>
-                <article className="faq-card">
-                  <h3>Why do some image URLs fail?</h3>
-                  <p>Some websites block browsers from reading their images directly. If a pasted link doesn't work, try copying the direct image address instead, or just upload the photo from your device — that always works.</p>
-                </article>
-                <article className="faq-card">
-                  <h3>Is the Gaze Tracker exact?</h3>
-                  <p>No — it's an estimate, not an exact measurement. Accuracy depends on your face position, lighting, camera quality, glasses, and how precisely you click each calibration dot.</p>
-                </article>
-              </div>
-            </section>
-          </main>
+          <LandingPage
+            isSignedIn={isSignedIn}
+            isGuest={isGuest}
+            firstName={firstName}
+            onGuestMode={this.handleGuestMode}
+            onOpenDashboardTool={this.openDashboardTool}
+            onRouteChange={this.handleRouteChange}
+          />
         ) : route === 'home' ? (
           <>
             <div className="dashboard-shell">
-              {activeDashboardTab === 'photo' && (
-                <section className="dashboard-page-title" aria-labelledby="photo-scan-title">
-                  <h1 id="photo-scan-title">Face Analysis &amp; Blur</h1>
-                </section>
-              )}
+              {/* Dashboard now has one tool: photo face analysis and privacy blur. */}
+              <section className="dashboard-page-title" aria-labelledby="photo-scan-title">
+                <h1 id="photo-scan-title">Face Analysis &amp; Blur</h1>
+              </section>
 
-              {activeDashboardTab === 'photo' && (
-                <section className="dashboard-toolbar">
-                  <ImageLinkForm
-                    onInputChange={this.handleImageInputChange}
-                    onButtonSubmit={this.handleImageSubmit}
-                    onCancelDetect={this.handleDetectCancel}
-                    onFileSelect={this.handleFileInput}
-                    onClearInput={this.handleImageClear}
-                    name={user.name}
-                    role={user.role}
-                    inputValue={input}
-                    isDetecting={isDetecting}
-                  />
-                </section>
-              )}
+              <section className="dashboard-toolbar">
+                <ImageLinkForm
+                  onInputChange={this.handleImageInputChange}
+                  onButtonSubmit={this.handleImageSubmit}
+                  onCancelDetect={this.handleDetectCancel}
+                  onFileSelect={this.handleFileInput}
+                  onClearInput={this.handleImageClear}
+                  name={user.name}
+                  role={user.role}
+                  inputValue={input}
+                  isDetecting={isDetecting}
+                />
+              </section>
 
-              {activeDashboardTab === 'photo' ? (
-                <>
-                  <section className="dashboard-grid">
-                    <div className="dashboard-panel dashboard-preview-panel">
+              <section className="dashboard-grid">
+                    <div className="surface-card dashboard-panel dashboard-preview-panel">
                       {isDetecting && (
                         <div className="detect-loading">
                           <p>{detectStatusMessage || 'Please wait...'}</p>
@@ -1081,7 +968,7 @@ class App extends Component {
                       )}
                     </div>
 
-                    <aside className="dashboard-panel dashboard-telemetry-panel custom-scrollbar">
+                    <aside className="surface-card dashboard-panel dashboard-telemetry-panel custom-scrollbar">
                       <div className="preview-floating-badges">
                         <span>Faces Detected: {detectedFaceCount}</span>
                         <span>Processing Time: {photoProcessingTimeMs ? `${photoProcessingTimeMs}ms` : 'Waiting'}</span>
@@ -1089,48 +976,62 @@ class App extends Component {
 
                       <div className="face-card-grid">
                         {photoFaceSummaries.length === 0 ? (
-                          <article className="telemetry-card">
+                          <article className="surface-card telemetry-card">
                             <span>Analysis</span>
                             <strong>Waiting</strong>
                             <p>Upload or paste an image, then run detection to see per-face cards here.</p>
                           </article>
                         ) : (
                           photoFaceSummaries.map((face) => (
-                            <article key={face.id} className="telemetry-card">
+                            <article key={face.id} className="surface-card telemetry-card">
                               <div className="face-card-heading">
                                 <span>Face #{face.id}</span>
                                 <b>{blurredFaceIds.includes(face.id) ? 'Blurred' : 'Visible'}</b>
                               </div>
                               <strong>{face.age} yrs</strong>
-                              <p>Emotion: {formatLabel(face.expression)} ({face.expressionConfidence}%)</p>
+                              <p>Emotion: {formatLabel(face.expression)}</p>
                               <div className="telemetry-progress telemetry-progress-emotion" aria-label="Emotion confidence">
                                 <b style={{ width: `${face.expressionConfidence || 0}%` }}></b>
                               </div>
-                              <small className="telemetry-progress-caption">Emotion confidence</small>
+                              <small className="telemetry-progress-caption">
+                                Emotion confidence: {face.expressionConfidence}%
+                              </small>
                               <p>Gender: {formatLabel(face.gender)}</p>
                             </article>
                           ))
                         )}
                       </div>
 
-                      <section className="privacy-blur-card">
+                      <section className="surface-card privacy-blur-card">
                         <div>
                           <span className="telemetry-label">Selective Privacy Blur</span>
                           <p>Choose exactly which detected faces should be anonymized.</p>
                         </div>
-                        <div className="blur-controls">
+                        <div className="blur-primary-actions">
+                          <div className="blur-controls">
+                            <button
+                              className={allFacesBlurred ? 'button-pill button-muted blur-pill blur-pill-active' : 'button-pill button-muted blur-pill'}
+                              onClick={this.toggleBlurAllFaces}
+                              disabled={!photoFaceSummaries.length}
+                              type="button"
+                            >
+                              Blur All
+                            </button>
+                          </div>
                           <button
-                            className={allFacesBlurred ? 'blur-pill blur-pill-active' : 'blur-pill'}
-                            onClick={this.toggleBlurAllFaces}
-                            disabled={!photoFaceSummaries.length}
+                            className="button-primary export-blur-button"
+                            onClick={this.handleAnonymizedExport}
+                            disabled={!photoFaceSummaries.length || !blurredFaceIds.length}
                             type="button"
                           >
-                            Blur All
+                            Export Anonymized Image
                           </button>
+                        </div>
+                        <div className="blur-controls">
                           {photoFaceSummaries.map((face) => (
                             <button
                               key={face.id}
-                              className={blurredFaceIds.includes(face.id) ? 'blur-pill blur-pill-active' : 'blur-pill'}
+                              className={blurredFaceIds.includes(face.id) ? 'button-pill button-muted blur-pill blur-pill-active' : 'button-pill button-muted blur-pill'}
                               onClick={() => this.toggleFaceBlur(face.id)}
                               type="button"
                             >
@@ -1138,77 +1039,22 @@ class App extends Component {
                             </button>
                           ))}
                         </div>
-                        <button
-                          className="export-blur-button"
-                          onClick={this.handleAnonymizedExport}
-                          disabled={!photoFaceSummaries.length || !blurredFaceIds.length}
-                          type="button"
-                        >
-                          Export Anonymized Image
-                        </button>
                       </section>
                       {dashboardUtilityStrip}
                     </aside>
-                  </section>
-                </>
-              ) : (
-                <VisionTracker />
-              )}
+              </section>
 
               {canViewUsers && <AdminPanel />}
-              {activeDashboardTab === 'photo' && (
-                <p className="analysis-disclaimer">
-                  AI results are estimates and can be wrong. Age, gender, and emotion predictions depend on image quality, lighting, face angle, and model limitations.
-                </p>
-              )}
+              <p className="analysis-disclaimer">
+                AI results are estimates and can be wrong. Age, gender, and emotion predictions depend on image quality, lighting, face angle, and model limitations.
+              </p>
               {isHistoryOpen && (
-                <div className="history-overlay" role="presentation" onMouseDown={(event) => {
-                  if (event.target === event.currentTarget) {
-                    this.setState({ isHistoryOpen: false });
-                  }
-                }}>
-                  <section className="history-drawer" aria-label="Scan history">
-                    <div className="history-drawer-header">
-                      <div>
-                        <p className="dashboard-placeholder-label">Recent Scans</p>
-                        <h2>Scan History</h2>
-                      </div>
-                      <div className="history-actions">
-                        <button className="history-clear-button" onClick={this.handleClearHistory} disabled={scanHistory.length === 0} type="button">
-                          Clear All
-                        </button>
-                        <button className="history-close-button" onClick={() => this.setState({ isHistoryOpen: false })} type="button">
-                          Close
-                        </button>
-                      </div>
-                    </div>
-                    {scanHistory.length === 0 ? (
-                      <p className="history-empty">No scans yet. Run a photo scan and it will appear here.</p>
-                    ) : (
-                      <div className="history-list">
-                        {scanHistory.map((scan) => (
-                          <article key={scan.id} className="history-item">
-                            {scan.imageUrl ? (
-                              <img src={scan.imageUrl} alt="Previous scan thumbnail" />
-                            ) : (
-                              <div className="history-thumbnail-placeholder" aria-hidden="true">
-                                Upload
-                              </div>
-                            )}
-                            <div>
-                              <strong>{scan.faceCount} face{scan.faceCount === 1 ? '' : 's'} detected</strong>
-                              <p>{scan.timestamp}</p>
-                              {scan.processingTimeMs ? <p>{scan.processingTimeMs}ms processing time</p> : null}
-                            </div>
-                            <button className="history-delete-button" onClick={() => this.handleDeleteHistoryItem(scan.id)} type="button">
-                              Delete
-                            </button>
-                          </article>
-                        ))}
-                      </div>
-                    )}
-                  </section>
-                </div>
+                <HistoryDrawer
+                  scanHistory={scanHistory}
+                  onClearHistory={this.handleClearHistory}
+                  onClose={() => this.setState({ isHistoryOpen: false })}
+                  onDeleteHistoryItem={this.handleDeleteHistoryItem}
+                />
               )}
             </div>
           </>
@@ -1217,16 +1063,15 @@ class App extends Component {
             <button className="guidelines-sticky-back" onClick={this.handleBackNavigation} type="button">
               &lt; Back
             </button>
-            <section className="guidelines-hero">
+            <section className="surface-card guidelines-hero">
               <p className="landing-section-kicker">Ocula help</p>
               <h1>User Guide</h1>
               <p>
-                A practical guide for getting reliable photo scans, exporting privacy-safe images,
-                and calibrating the experimental Gaze Tracker without fighting the browser.
+                A practical guide for getting reliable photo scans and exporting privacy-safe images.
               </p>
             </section>
             <section className="guide-manual">
-              <article className="guide-manual-section">
+              <article className="surface-card guide-manual-section">
                 <span>01</span>
                 <div>
                   <h2>Photo Scan & Blur</h2>
@@ -1238,25 +1083,13 @@ class App extends Component {
                   </ul>
                 </div>
               </article>
-              <article className="guide-manual-section">
+              <article className="surface-card guide-manual-section">
                 <span>02</span>
-                <div>
-                  <h2>Gaze Tracker</h2>
-                  <ul>
-                    <li>Enter fullscreen only when you are ready; the tracker asks for webcam access and runs locally in the browser.</li>
-                    <li>Move close enough to fill the face oval without cutting off your forehead or chin.</li>
-                    <li>Keep your head still during calibration. On desktop, mouse clicks give better accuracy than the B key.</li>
-                    <li>Remove glasses if reflections block your pupils; webcam quality, lighting, and natural eye alignment affect accuracy.</li>
-                  </ul>
-                </div>
-              </article>
-              <article className="guide-manual-section">
-                <span>03</span>
                 <div>
                   <h2>Privacy & Limitations</h2>
                   <ul>
                     <li>Ocula is a browser vision demo, not a medical, security, or identity-verification system.</li>
-                    <li>Age, emotion, gender, and gaze predictions are estimates and can be wrong.</li>
+                    <li>Age, emotion, and gender predictions are estimates and can be wrong.</li>
                     <li>Photo analysis and blur rendering happen client-side; the backend is mainly for accounts, JWT sessions, entries, and admin support.</li>
                     <li>If an external URL fails, the website probably blocked browser image access. Upload the file instead.</li>
                   </ul>

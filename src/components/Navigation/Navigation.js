@@ -11,11 +11,10 @@ const Navigation = ({
   isGuest = false,
   route = 'landing',
   userName = 'Guest',
-  activeDashboardTab = 'photo',
-  onDashboardTabChange,
   onBackNavigation
 }) => {
     const userMenuRef = useRef(null);
+    // Mobile drawer state stays in Navigation because only the navbar needs to know whether it is open.
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const showBackToHome = route !== 'landing';
     const isDashboardArea = route === 'home' || route === 'guidelines';
@@ -25,17 +24,15 @@ const Navigation = ({
         <BrandLogo onClick={() => onRouteChange('landing')} />
       </div>
     );
-    const openDashboardTab = (tabName) => {
-      closeMobileMenu();
-      onDashboardTabChange?.(tabName);
-    };
     const closeUserMenu = () => {
+      // The desktop account menu uses <details>, so closing it means setting open=false.
       if (userMenuRef.current) {
         userMenuRef.current.open = false;
       }
     };
     const closeMobileMenu = () => setIsMobileMenuOpen(false);
     const goToRoute = (nextRoute) => {
+      // All route changes from the drawer should also collapse the drawer.
       closeMobileMenu();
       onRouteChange(nextRoute);
     };
@@ -51,6 +48,7 @@ const Navigation = ({
         userMenuRef.current.open = false;
       };
 
+      // Empty dependency array is intentional: the listener only needs the stable ref object.
       document.addEventListener('mousedown', closeMenuOnOutsideClick);
 
       return () => {
@@ -59,13 +57,16 @@ const Navigation = ({
     }, []);
 
     const renderCenterNavigation = () => isDashboardArea ? (
-      <div className="navigation-dashboard-tabs" role="tablist" aria-label="Ocula dashboard tools">
-        <button className={activeDashboardTab === 'photo' ? 'navigation-dashboard-tab navigation-dashboard-tab-active' : 'navigation-dashboard-tab'} onClick={() => openDashboardTab('photo')} type="button">
-          Photo Scan & Blur
+      // Dashboard screens keep page links centered while the account menu stays on the right.
+      <div className="navigation-anchor-links navigation-dashboard-links">
+        <button onClick={() => goToRoute('guidelines')} type="button">
+          User Guide
         </button>
-        <button className={activeDashboardTab === 'tracker' ? 'navigation-dashboard-tab navigation-dashboard-tab-active' : 'navigation-dashboard-tab'} onClick={() => openDashboardTab('tracker')} type="button">
-          Gaze Tracker
-        </button>
+        {showBackToHome && (
+          <button onClick={() => goToRoute('landing')} type="button">
+            Homepage
+          </button>
+        )}
       </div>
     ) : isLanding ? (
       <div className="navigation-anchor-links">
@@ -78,15 +79,8 @@ const Navigation = ({
     );
 
     const renderActionNavigation = (attachUserMenuRef = true) => isDashboardArea ? (
+      // attachUserMenuRef is false inside the mobile drawer so the desktop <details> ref is not reused twice.
       <>
-        <button onClick={() => goToRoute('guidelines')} className="navigation-back-button navigation-guide-button" type="button">
-          User Guide
-        </button>
-        {showBackToHome && (
-          <button onClick={() => goToRoute('landing')} className="navigation-back-button" type="button">
-            Homepage
-          </button>
-        )}
         {attachUserMenuRef ? (
           <details className="navigation-user-menu" ref={userMenuRef}>
             <summary>{isGuest ? 'Guest Mode' : userName}</summary>
@@ -158,6 +152,7 @@ const Navigation = ({
           {renderActionNavigation()}
         </div>
 
+        {/* These compact labels keep signed-in context visible on mobile without crowding the drawer button. */}
         {isLanding && isSignedIn && !isGuest && (
           <button onClick={() => goToRoute('signout')} className="navigation-mobile-signout" type="button">
             Sign Out
@@ -167,11 +162,9 @@ const Navigation = ({
           <span className="navigation-mobile-user-name">{isGuest ? 'Guest' : userName}</span>
         )}
 
+        {/* Keep the drawer mounted so CSS can animate both opening and closing smoothly. */}
         <div className={isMobileMenuOpen ? 'navigation-mobile-backdrop navigation-mobile-backdrop-open' : 'navigation-mobile-backdrop'} onClick={closeMobileMenu} aria-hidden="true"></div>
         <aside className={isMobileMenuOpen ? 'navigation-mobile-menu navigation-mobile-menu-open' : 'navigation-mobile-menu'} aria-label="Navigation menu">
-          <div className="navigation-mobile-menu-header">
-            <strong>Ocula</strong>
-          </div>
           <div className="navigation-mobile-section">{renderCenterNavigation()}</div>
           <div className="navigation-mobile-section navigation-mobile-actions">{renderActionNavigation(false)}</div>
         </aside>

@@ -11,6 +11,7 @@
   -webkit-backdrop-filter: blur(4px);
 }
 
+/* Shared layout for sign in, register, password reset, and email verification screens. */
 .auth-main {
   padding: 2rem;
   text-align: left;
@@ -101,6 +102,7 @@
   box-shadow: 0 12px 24px rgba(255, 228, 110, 0.18);
 }
 
+/* Loading spinner appears inside submit buttons during backend requests. */
 .auth-button-spinner {
   width: 1rem;
   height: 1rem;
@@ -143,6 +145,7 @@
 }
 
 .auth-divider {
+  /* Divider separates password auth from Google/secondary account actions. */
   display: flex;
   align-items: center;
   gap: 0.7rem;
@@ -180,6 +183,7 @@
 }
 
 .form-message {
+  /* One message area handles both validation errors and slow-server/status updates. */
   margin: 0.75rem 0;
   line-height: 1.45;
 }

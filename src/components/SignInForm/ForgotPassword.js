@@ -36,7 +36,7 @@ const ForgotPassword = ({ onRouteChange }) => {
   };
 
   return (
-    <article className="auth-card">
+    <article className="surface-card auth-card">
       <main className="auth-main">
         <p className="auth-kicker">Ocula account help</p>
         <h1 className="auth-title">Reset password</h1>
@@ -48,7 +48,7 @@ const ForgotPassword = ({ onRouteChange }) => {
         <label className="auth-label">Email</label>
         <input className="auth-input" type="email" value={email} onChange={(e) => setEmail(e.target.value)} disabled={isLoading} />
 
-        <button className="auth-primary-button" onClick={handleSubmit} disabled={isLoading}>
+        <button className="button-primary auth-primary-button" onClick={handleSubmit} disabled={isLoading}>
           {isLoading ? 'Sending...' : 'Send reset link'}
         </button>
 

@@ -20,8 +20,8 @@ const particlesOptions = {
   interactivity: {
     events: {
       onHover: { enable: true, mode: 'repulse' },
-      // Click-push kept adding more particles during calibration clicks, which
-      // made the Vision Tracker tab increasingly laggy.
+      // Click-push can keep adding particles during repeated app interactions,
+      // so it stays disabled to protect low-power devices from extra work.
       onClick: { enable: false }
     }
   },

@@ -1,4 +1,5 @@
 .admin-panel {
+  /* Admin content is compact because App decides whether this component is allowed to render. */
   width: min(92vw, 42rem);
   margin-top: 0.25rem;
 }
@@ -34,6 +35,7 @@
 }
 
 .admin-panel-card {
+  /* The user list appears only after the admin opens the panel and data loads. */
   margin-top: 0.9rem;
   padding: 1rem;
   border-radius: 14px;

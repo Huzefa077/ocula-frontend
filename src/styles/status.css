@@ -1,0 +1,215 @@
+/* Maintenance and backend status messages. */
+/* Maintenance mode has two presentations: a small warning banner or a blocking full-page card. */
+.maintenance-banner {
+  display: flex;
+  justify-content: center;
+  padding: 0.9rem 1rem 0;
+}
+
+.maintenance-banner-content {
+  width: min(94vw, 72rem);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.9rem 1rem;
+  border-radius: 18px;
+  background: rgba(255, 228, 110, 0.12);
+  border: 1px solid rgba(255, 228, 110, 0.34);
+  color: #fffbea;
+  text-align: left;
+  box-shadow: 0 16px 34px rgba(2, 6, 23, 0.22);
+}
+
+.maintenance-banner-content div {
+  display: grid;
+  gap: 0.25rem;
+}
+
+.maintenance-kicker {
+  margin: 0;
+  color: #ffe46e;
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.maintenance-banner-content strong {
+  color: #fffbea;
+  font-weight: 900;
+}
+
+.maintenance-banner-content span,
+.maintenance-banner-content p {
+  margin: 0;
+  color: rgba(255, 251, 234, 0.76);
+  line-height: 1.45;
+}
+
+.maintenance-banner-content > p {
+  max-width: 34rem;
+}
+
+.maintenance-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem 1rem;
+  box-sizing: border-box;
+}
+
+.maintenance-card {
+  width: min(92vw, 38rem);
+  padding: clamp(1.4rem, 4vw, 2.5rem);
+  border-radius: 28px;
+  background: rgba(15, 23, 42, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 28px 70px rgba(2, 6, 23, 0.42);
+  color: #fffbea;
+  text-align: left;
+}
+
+.maintenance-card h1 {
+  margin: 0.45rem 0 0.85rem;
+  font-size: clamp(2rem, 6vw, 3.4rem);
+  line-height: 0.98;
+  letter-spacing: -0.06em;
+}
+
+.maintenance-card p {
+  margin: 0;
+  color: rgba(255, 251, 234, 0.78);
+  line-height: 1.6;
+}
+
+.maintenance-card strong,
+.maintenance-card span {
+  display: block;
+  margin-top: 1rem;
+  color: #fffbea;
+  line-height: 1.5;
+}
+
+.maintenance-card span {
+  color: #67e8f9;
+  font-weight: 900;
+}
+
+.maintenance-card-blocking {
+  border-color: rgba(255, 228, 110, 0.26);
+}
+
+/* Backend wake-up/status banner shown when the API is missing or retrying. */
+.status-banner {
+  display: flex;
+  justify-content: center;
+  padding: 0 1rem;
+}
+
+.status-banner-content {
+  width: min(92vw, 34rem);
+  margin-top: 0.5rem;
+  padding: 0.9rem 1rem;
+  border-radius: 14px;
+  background: rgba(16, 20, 34, 0.72);
+  border: 1px solid rgba(75, 220, 240, 0.35);
+  box-shadow: 0 0 18px rgba(0, 0, 0, 0.22);
+  color: #f7fbff;
+  transition: opacity 0.25s ease, transform 0.25s ease;
+}
+
+.status-banner-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.9rem;
+}
+
+.status-banner-copy {
+  min-width: 0;
+  text-align: left;
+}
+
+.status-banner-title {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.status-connected-indicator {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  padding: 0.28rem 0.7rem;
+  border-radius: 999px;
+  background: rgba(91, 224, 154, 0.18);
+  border: 1px solid rgba(91, 224, 154, 0.45);
+  color: #dfffea;
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.status-banner-message {
+  margin: 0.2rem 0 0;
+  font-size: 0.9rem;
+  line-height: 1.35;
+  color: rgba(247, 251, 255, 0.86);
+  word-break: keep-all;
+}
+
+.status-loader {
+  width: 1.8rem;
+  height: 1.8rem;
+  flex-shrink: 0;
+  border: 3px solid rgba(255, 255, 255, 0.25);
+  border-top-color: #4bdcf0;
+  border-radius: 50%;
+  animation: status-loader-spin 0.85s linear infinite;
+}
+
+.status-banner-hint {
+  margin: 0.55rem 0 0;
+  font-size: 0.8rem;
+  line-height: 1.4;
+  color: rgba(247, 251, 255, 0.7);
+  text-align: left;
+}
+
+.status-button {
+  margin-top: 0.7rem;
+  background: #4bdcf0;
+  color: #07131d;
+  border: none;
+  cursor: pointer;
+  font-weight: 700;
+  font-size: 0.88rem;
+}
+
+@media (max-width: 760px) {
+  .status-banner-top {
+    align-items: flex-start;
+  }
+
+  .status-loader,
+  .status-connected-indicator {
+    margin-top: 0.1rem;
+  }
+}
+
+.status-button:hover {
+  background: #7be7f5;
+}
+
+@keyframes status-loader-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}

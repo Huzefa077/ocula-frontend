@@ -7,6 +7,7 @@
   gap: 1.25rem;
 }
 
+/* The frame constrains the preview so large uploads do not push the dashboard controls away. */
 .face-recognition-frame {
   position: relative;
   width: 100%;
@@ -52,6 +53,7 @@
   pointer-events: none;
 }
 
+/* Loader sits above the image while face-api.js is still processing. */
 .face-loader-overlay {
   position: absolute;
   inset: 0;
@@ -92,6 +94,7 @@
   text-align: left;
 }
 
+/* Summary cards are used when FaceRecognition renders its own analysis panel outside the dashboard. */
 .face-analysis-title {
   margin: 0 0 0.9rem;
   color: #4bdcf0;

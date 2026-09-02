@@ -4,6 +4,7 @@ import { API_URL } from '../../config';
 import { buildAuthHeaders } from '../../utils/auth';
 import './AdminPanel.css';
 
+// AdminPanel is intentionally hidden behind permissions in App; this component only handles the admin UI itself.
 const AdminPanel = () => {
   const [users, setUsers] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -13,6 +14,7 @@ const AdminPanel = () => {
 
   const handleTogglePanel = async () => {
     if (isOpen) {
+      // Closing the panel does not clear users, so reopening feels instant during the same session.
       setIsOpen(false);
       return;
     }
@@ -36,6 +38,7 @@ const AdminPanel = () => {
   };
 
   const handleDeleteUser = async (userId) => {
+    // This action removes account data, so keep the browser confirmation even for admins.
     const confirmed = window.confirm('Delete this user completely? This cannot be undone.');
 
     if (!confirmed) {
@@ -64,7 +67,7 @@ const AdminPanel = () => {
     <section className="admin-panel">
       <div className="admin-panel-header">
         <button
-          className="admin-panel-button"
+          className="button-primary admin-panel-button"
           onClick={handleTogglePanel}
           disabled={isLoading}
         >
@@ -75,7 +78,7 @@ const AdminPanel = () => {
       {error && <p className="admin-panel-error">{error}</p>}
 
       {isOpen && (
-        <div className="admin-panel-card">
+        <div className="surface-card admin-panel-card">
           <p className="admin-panel-title">Registered users</p>
           <div className="admin-panel-list">
             {users.map((user) => (
@@ -86,7 +89,7 @@ const AdminPanel = () => {
                   <p>Entries: {user.entries}</p>
                 </div>
                 <button
-                  className="admin-panel-delete-button"
+                  className="button-muted admin-panel-delete-button"
                   onClick={() => handleDeleteUser(user.id)}
                   disabled={deletingUserId === user.id}
                 >

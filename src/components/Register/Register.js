@@ -16,12 +16,14 @@ const Register = ({ onRouteChange, loadUser }) => {
   const [isLoading, setIsLoading] = useState(false);
 
   const completeGoogleRegister = (data) => {
+    // Google auth can create or return an account, so it finishes like a normal sign in.
     storeAuthToken(data.token);
     loadUser(data.user);
     onRouteChange('home');
   };
 
   const handleRegister = async () => {
+    // Keep the most common validation errors on the client before creating an account.
     if (!name.trim() || !email.trim() || !password.trim()) {
       setError('* All fields are required');
       return;
@@ -51,6 +53,7 @@ const Register = ({ onRouteChange, loadUser }) => {
     setStatusMessage('');
     setIsLoading(true);
 
+    // Show a friendly delay message if the hosted backend is waking up.
     const slowServerTimer = setTimeout(() => {
       setStatusMessage('Server is taking longer than usual. It may be waking up, please wait...');
     }, 4000);
@@ -72,6 +75,7 @@ const Register = ({ onRouteChange, loadUser }) => {
   };
 
   const handleGoogleCredential = async (credential) => {
+    // The same Google endpoint supports registration and sign-in on the backend.
     if (!isApiConfigured) {
       setError('App configuration is missing the backend API URL.');
       return;
@@ -94,7 +98,7 @@ const Register = ({ onRouteChange, loadUser }) => {
   };
 
   return (
-    <article className="auth-card">
+    <article className="surface-card auth-card">
       <main className="auth-main">
         <p className="auth-kicker">Create your Ocula account</p>
         <h1 className="auth-title">Register</h1>
@@ -123,7 +127,7 @@ const Register = ({ onRouteChange, loadUser }) => {
             </div>
           </fieldset>
 
-          <button className="auth-primary-button" type="button" onClick={handleRegister} disabled={isLoading} aria-busy={isLoading}>
+          <button className="button-primary auth-primary-button" type="button" onClick={handleRegister} disabled={isLoading} aria-busy={isLoading}>
             {isLoading && <span className="auth-button-spinner" aria-hidden="true"></span>}
             {isLoading ? 'Registering...' : 'Register'}
           </button>
