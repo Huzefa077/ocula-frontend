@@ -311,6 +311,10 @@ button {
     height: auto;
   }
 
+  .dashboard-preview-panel-mobile-hidden {
+    display: none;
+  }
+
   .dashboard-telemetry-panel {
     order: 3;
   }

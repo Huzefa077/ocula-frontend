@@ -103,6 +103,7 @@ class App extends Component {
     this.state = {
       input: '',
       imageUrl: '',
+      hasRequestedImagePreview: false,
       detectMessage: '',
       detectStatusMessage: '',
       isDetecting: false,
@@ -383,12 +384,16 @@ class App extends Component {
     });
   };
 
-  handleImageInputChange = (event) => this.setState({ input: event.target.value });
+  handleImageInputChange = (event) => this.setState({
+    input: event.target.value,
+    hasRequestedImagePreview: false
+  });
 
   handleFileInput = (dataUrl) => {
     // File uploads arrive as data URLs, which avoids CORS problems from external image hosts.
     this.setState({
       input: dataUrl,
+      hasRequestedImagePreview: false,
       detectMessage: '',
       detectStatusMessage: 'Local image ready. Press Detect Faces.'
     });
@@ -402,6 +407,7 @@ class App extends Component {
 
     this.setState({
       imageUrl: '',           // Force image to re-load
+      hasRequestedImagePreview: true,
       detectMessage: '',
       detectStatusMessage: 'Loading image preview...',
       isDetecting: true,
@@ -422,6 +428,7 @@ class App extends Component {
   handleDetectCancel = () => {
     this.setState((prevState) => ({
       imageUrl: '',
+      hasRequestedImagePreview: false,
       detectMessage: 'Image scan was cancelled.',
       detectStatusMessage: '',
       isDetecting: false,
@@ -438,6 +445,7 @@ class App extends Component {
     this.setState((prevState) => ({
       input: '',
       imageUrl: '',
+      hasRequestedImagePreview: false,
       detectMessage: '',
       detectStatusMessage: '',
       isDetecting: false,
@@ -666,7 +674,7 @@ class App extends Component {
       clearGuestMode();
       // Reset app state on sign out so the next session starts clean.
       this.setState({
-        input: '', imageUrl: '', detectMessage: '', detectStatusMessage: '', isDetecting: false,
+        input: '', imageUrl: '', hasRequestedImagePreview: false, detectMessage: '', detectStatusMessage: '', isDetecting: false,
         photoFaceSummaries: [], photoFaceBoxes: [], blurredFaceIds: [], scanHistory: [], isHistoryOpen: false,
         route: nextRoute, previousRoute: this.state.route, isSignedIn: false, isGuest: false, user: { ...initialUser }
       });
@@ -683,6 +691,7 @@ class App extends Component {
       this.setState({
         input: '',
         imageUrl: '',
+        hasRequestedImagePreview: false,
         detectMessage: '',
         detectStatusMessage: '',
         isDetecting: false,
@@ -716,6 +725,7 @@ class App extends Component {
     this.setState({
       input: '',
       imageUrl: '',
+      hasRequestedImagePreview: false,
       detectMessage: '',
       detectStatusMessage: '',
       isDetecting: false,
@@ -757,6 +767,7 @@ class App extends Component {
     const {
       isSignedIn,
       imageUrl,
+      hasRequestedImagePreview,
       route,
       init,
       user,
@@ -935,7 +946,7 @@ class App extends Component {
               </section>
 
               <section className="dashboard-grid">
-                    <div className="surface-card dashboard-panel dashboard-preview-panel">
+                    <div className={`surface-card dashboard-panel dashboard-preview-panel ${!hasRequestedImagePreview ? 'dashboard-preview-panel-mobile-hidden' : ''}`}>
                       {isDetecting && (
                         <div className="detect-loading">
                           <p>{detectStatusMessage || 'Please wait...'}</p>
